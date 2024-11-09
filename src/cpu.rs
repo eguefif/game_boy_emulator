@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+#![allow(clippy::new_without_default)]
+
 use crate::memorybus::MemoryBus;
 
 pub struct Cpu {
@@ -7,6 +10,7 @@ pub struct Cpu {
     hl: u16,
     sp: u16,
     pc: u16,
+    cycle: u128,
 }
 impl Cpu {
     pub fn new() -> Cpu {
@@ -17,6 +21,7 @@ impl Cpu {
             hl: 0,
             sp: 0,
             pc: 0,
+            cycle: 0,
         }
     }
     pub fn step(&mut self, memory: &mut MemoryBus) {}
