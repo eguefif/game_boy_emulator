@@ -13,6 +13,8 @@ const MEM_MAX: u16 = 0xFFFF;
 pub struct MemoryBus {
     rom1: [u8; ROM_B1_SIZE as usize],
     rom2: [u8; ROM_B2_SIZE as usize],
+    pc: u16,
+    cycle: u128,
 }
 
 impl MemoryBus {
@@ -20,15 +22,31 @@ impl MemoryBus {
         MemoryBus {
             rom1: [0; ROM_B1_SIZE as usize],
             rom2: [0; ROM_B2_SIZE as usize],
+            pc: 100,
+            cycle: 0,
         }
     }
 
-    pub fn fetch_next_byte(&mut self, at: u16) -> u8 {
-        self.read(at)
+    pub fn fetch_next_byte(&mut self) -> u8 {
+        self.move_pc_by(1);
+        self.cycle += 1;
+        self.read(self.pc.wrapping_sub(1))
+    }
+
+    pub fn fetch_byte(&mut self, at: u16) -> u8 {
+        let retval = self.read(at);
+        self.move_pc_by(1);
+        self.cycle += 1;
+        retval
     }
 
     pub fn write_byte(&mut self, at: u16, value: u8) {
         self.write(at, value)
+    }
+
+    fn move_pc_by(&mut self, value: u16) {
+        let pc = self.pc;
+        self.pc = pc.wrapping_add(value);
     }
 
     fn read(&mut self, at: u16) -> u8 {
