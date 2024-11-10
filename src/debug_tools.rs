@@ -17,6 +17,10 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
     match opcode {
         0x0 => String::from("nop"),
 
+        //Ld sp
+        0x08 => format!("ld (&{:04x}), sp", imm16),
+
+        // Ld addr16
         0x02 => String::from("ld (bc), a"),
         0x12 => String::from("ld (de), a"),
         0x22 => String::from("ld (hl+), a"),
@@ -26,6 +30,7 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x2A => String::from("ld a, (hl+)"),
         0x3A => String::from("ld a, (hl-)"),
 
+        // Ld imm8
         0x06 => format!("ld b, #${:2x}", imm8),
         0x16 => format!("ld d, #${:02x}", imm8),
         0x26 => format!("ld h, #${:02x}", imm8),

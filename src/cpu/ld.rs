@@ -2,6 +2,12 @@ use crate::cpu::read_write_cpu::{Source8, Target16, Target8};
 use crate::cpu::Cpu;
 
 impl Cpu {
+    pub fn load_sp_imm16(&mut self) {
+        let low = self.reg.sp as u8;
+        let loc = self.memory.fetch_next_word();
+        self.memory.write_byte(loc, low);
+    }
+
     pub fn load16_imm<T: Copy>(&mut self, target: T)
     where
         Self: Target16<T>,
@@ -22,6 +28,19 @@ impl Cpu {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn it_should_ld_sp_low_in_imm16() {
+        let mut cpu = Cpu::new();
+        cpu.reg.sp = 0xABCD;
+        let loc = 0x10;
+        cpu.memory.write_word(cpu.memory.pc + 1, loc);
+        set_first_instruction(0x08, &mut cpu);
+
+        cpu.step();
+
+        assert_eq!(cpu.memory.fetch_byte(loc), 0xCD);
+    }
 
     #[test]
     fn it_should_mov_c_to_b() {

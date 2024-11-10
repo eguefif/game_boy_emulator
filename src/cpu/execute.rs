@@ -23,6 +23,9 @@ impl Cpu {
         match opcode {
             0x0 => {}
 
+            // Load sp
+            0x08 => self.load_sp_imm16(),
+
             // Load addr
             0x02 => self.load(Addr::BC, A),
             0x12 => self.load(Addr::DE, A),
