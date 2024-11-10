@@ -23,7 +23,7 @@ impl Cpu {
         match opcode {
             0x0 => {}
 
-            // Load
+            // Load addr
             0x02 => self.load(Addr::BC, A),
             0x12 => self.load(Addr::DE, A),
             0x22 => self.load(Addr::HLI, A),
@@ -33,6 +33,7 @@ impl Cpu {
             0x2A => self.load(A, Addr::HLI),
             0x3A => self.load(A, Addr::HLD),
 
+            // Load imm8
             0x06 => self.load(B, Imm8),
             0x16 => self.load(D, Imm8),
             0x26 => self.load(H, Imm8),
