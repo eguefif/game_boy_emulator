@@ -1,13 +1,31 @@
 use crate::cpu::registers::Flags::{CARRY, HALF, N, ZERO};
 use crate::cpu::Cpu;
 
-use crate::cpu::read_write_cpu::{Source8, Target8};
+use crate::cpu::read_write_cpu::{Source16, Source8, Target16, Target8};
 
 use crate::cpu::registers::test_carry_8;
 
 use super::registers::test_half_carry_8;
 
 impl Cpu {
+    pub fn dec16<T: Copy>(&mut self, target: T)
+    where
+        Self: Target16<T> + Source16<T>,
+    {
+        let value = self.read16(target);
+        let res = value.wrapping_sub(1);
+        self.write16(target, res);
+    }
+
+    pub fn inc16<T: Copy>(&mut self, target: T)
+    where
+        Self: Target16<T> + Source16<T>,
+    {
+        let value = self.read16(target);
+        let res = value.wrapping_add(1);
+        self.write16(target, res);
+    }
+
     pub fn dec<T: Copy>(&mut self, target: T)
     where
         Self: Target8<T> + Source8<T>,

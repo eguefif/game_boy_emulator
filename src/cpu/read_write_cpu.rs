@@ -15,7 +15,11 @@ pub trait Target8<T: Copy> {
 }
 
 pub trait Target16<T: Copy> {
-    fn write16(&mut self, src: T, value: u16);
+    fn write16(&mut self, target: T, value: u16);
+}
+
+pub trait Source16<T: Copy> {
+    fn read16(&mut self, source: T) -> u16;
 }
 
 impl Target16<Reg16> for Cpu {
@@ -25,6 +29,17 @@ impl Target16<Reg16> for Cpu {
             DE => self.reg.set_de(value),
             HL => self.reg.set_hl(value),
             SP => self.reg.sp = value,
+        }
+    }
+}
+
+impl Source16<Reg16> for Cpu {
+    fn read16(&mut self, source: Reg16) -> u16 {
+        match source {
+            BC => self.reg.bc(),
+            DE => self.reg.de(),
+            HL => self.reg.hl(),
+            SP => self.reg.sp,
         }
     }
 }
