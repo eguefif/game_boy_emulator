@@ -37,7 +37,7 @@ impl MemoryBus {
         retval
     }
 
-    fn read(&mut self, at: u16) -> u8 {
+    pub fn read(&mut self, at: u16) -> u8 {
         let loc = at & MEM_MAX;
 
         match loc {

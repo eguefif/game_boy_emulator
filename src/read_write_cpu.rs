@@ -1,6 +1,6 @@
 #![allow(unused_imports)]
 use crate::cpu::Cpu;
-use crate::execute::Addr;
+use crate::execute::{Addr, Imm8};
 use crate::registers::Reg16::{BC, DE, HL};
 use crate::registers::Reg8;
 use crate::registers::Reg8::{A, B, C, D, E, H, L};
@@ -84,5 +84,17 @@ impl Target8<Addr> for Cpu {
         };
 
         self.memory.write_byte(addr, value)
+    }
+}
+
+impl Source8<Imm8> for Cpu {
+    fn read(&mut self, _src: Imm8) -> u8 {
+        self.memory.fetch_next_byte()
+    }
+}
+
+impl Target8<Imm8> for Cpu {
+    fn write(&mut self, _tar: Imm8, value: u8) {
+        self.memory.write_byte(self.memory.pc, value);
     }
 }

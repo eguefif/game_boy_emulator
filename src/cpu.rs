@@ -70,9 +70,7 @@ mod tests {
     #[test]
     fn it_should_ld_d8_in_b() {
         let mut cpu = Cpu::new();
-        let loc = 0x11;
-        cpu.memory.write_byte(loc, 0xa);
-        cpu.memory.write_word(cpu.memory.pc + 1, loc);
+        cpu.memory.write_byte(cpu.memory.pc + 1, 0xa);
 
         set_instruction(0x06, &mut cpu);
         cpu.reg.b = 0;

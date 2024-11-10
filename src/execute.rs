@@ -12,6 +12,9 @@ pub enum Addr {
     Imm8,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub struct Imm8;
+
 impl Cpu {
     pub fn execute(&mut self, opcode: u8) {
         match opcode {
@@ -27,7 +30,14 @@ impl Cpu {
             0x2A => self.load(A, Addr::HLI),
             0x3A => self.load(A, Addr::HLD),
 
-            0x06 => self.load(B, Addr::Imm8),
+            0x06 => self.load(B, Imm8),
+            0x16 => self.load(D, Imm8),
+            0x26 => self.load(H, Imm8),
+            0x36 => self.load(Addr::HL, Imm8),
+            0x0E => self.load(C, Imm8),
+            0x1E => self.load(E, Imm8),
+            0x2E => self.load(L, Imm8),
+            0x3E => self.load(A, Imm8),
 
             0x40 => self.load(B, B),
             0x41 => self.load(B, C),

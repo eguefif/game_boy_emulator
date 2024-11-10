@@ -1,6 +1,6 @@
 use crate::cpu::Cpu;
 
-pub fn handle_debug(opcode: u8, cpu: &Cpu) {
+pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
     print!("${:<04x}: {:2x}    |", cpu.memory.pc - 1, opcode);
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{} |", cpu.reg);
@@ -8,9 +8,30 @@ pub fn handle_debug(opcode: u8, cpu: &Cpu) {
     println!();
 }
 
-fn diassemble(opcode: u8, _cpu: &Cpu) -> String {
+fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
+    let pc = cpu.memory.pc;
+    let imm8 = cpu.memory.read(pc);
     match opcode {
         0x0 => String::from("nop"),
+
+        0x02 => String::from("ld (bc), a"),
+        0x12 => String::from("ld (de), a"),
+        0x22 => String::from("ld (hl+), a"),
+        0x32 => String::from("ld ,(hl-), a"),
+        0x0A => String::from("ld a, (bc)"),
+        0x1A => String::from("ld a, (de)"),
+        0x2A => String::from("ld a, (hl+)"),
+        0x3A => String::from("ld a, (hl-)"),
+
+        0x06 => format!("ld b, #${:2x}", imm8),
+        0x16 => format!("ld d, #${:02x}", imm8),
+        0x26 => format!("ld h, #${:02x}", imm8),
+        0x36 => format!("ld (hl), #${:02x}", imm8),
+        0x0E => format!("ld c, #${:02x}", imm8),
+        0x1E => format!("ld e, #${:02x}", imm8),
+        0x2E => format!("ld l, #${:02x}", imm8),
+        0x3E => format!("ld a, #${:02x}", imm8),
+
         0x40 => String::from("ld b, b"),
         0x41 => String::from("ld b, c"),
         0x42 => String::from("ld b, d"),
