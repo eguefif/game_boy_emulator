@@ -1,8 +1,10 @@
-#![allow(dead_code)]
+#![allow(unused_imports)]
 #![allow(clippy::new_without_default)]
 
 use crate::debug_tools::handle_debug;
 use crate::memorybus::MemoryBus;
+use crate::registers::Addr;
+use crate::registers::Addr::{BC, DE, HL};
 use crate::registers::Reg8;
 use crate::registers::Reg8::{A, B, C, D, E, H, L};
 use crate::registers::Registers;
@@ -31,18 +33,10 @@ impl Cpu {
     pub fn step(&mut self) {
         let opcode = self.memory.fetch_next_byte();
         handle_debug(opcode, self);
-        match opcode {
-            0x0 => {}
-
-            0x40 => self.load(B, B),
-            0x41 => self.load(B, C),
-            _ => {
-                panic!("Opcode unknown: {}", opcode);
-            }
-        }
+        self.execute(opcode);
     }
 
-    fn load<O: Copy, I: Copy>(&mut self, target: O, src: I)
+    pub fn load<O: Copy, I: Copy>(&mut self, target: O, src: I)
     where
         Self: Target8<O> + Source8<I>,
     {
@@ -79,6 +73,30 @@ impl Target8<Reg8> for Cpu {
     }
 }
 
+impl Source8<Addr> for Cpu {
+    fn read(&mut self, src: Addr) -> u8 {
+        let addr = match src {
+            Addr::BC => self.reg.bc(),
+            Addr::DE => self.reg.de(),
+            Addr::HL => self.reg.hl(),
+        };
+
+        self.memory.fetch_byte(addr)
+    }
+}
+
+impl Target8<Addr> for Cpu {
+    fn write(&mut self, src: Addr, value: u8) {
+        let addr = match src {
+            Addr::BC => self.reg.bc(),
+            Addr::DE => self.reg.de(),
+            Addr::HL => self.reg.hl(),
+        };
+
+        self.memory.write_byte(addr, value)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -93,5 +111,20 @@ mod tests {
         cpu.step();
 
         assert_eq!(cpu.reg.b, 0xa);
+    }
+
+    #[test]
+    fn it_should_mov_a_to_mem_hl() {
+        let mut cpu = Cpu::new();
+        cpu.reg.a = 0xa;
+
+        let loc = 0x10;
+        cpu.reg.set_hl(loc);
+        let pc = cpu.memory.pc;
+        cpu.memory.write_byte(pc, 0x77);
+
+        cpu.step();
+
+        assert_eq!(cpu.memory.fetch_byte(loc), 0xa);
     }
 }

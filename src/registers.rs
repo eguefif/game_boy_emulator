@@ -149,6 +149,13 @@ pub enum Reg8 {
 }
 
 #[derive(Copy, Clone, Debug)]
+pub enum Addr {
+    BC,
+    DE,
+    HL,
+}
+
+#[derive(Copy, Clone, Debug)]
 pub enum Imm8 {}
 
 #[derive(Copy, Clone, Debug)]

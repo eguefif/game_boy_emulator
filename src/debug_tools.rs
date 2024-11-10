@@ -68,7 +68,7 @@ fn diassemble(opcode: u8, _cpu: &Cpu) -> String {
         0x73 => String::from("ld (hl), e"),
         0x74 => String::from("ld (hl), h"),
         0x75 => String::from("ld (hl), l"),
-        0x76 => String::from("ld (hl), (hl)"),
+        0x76 => String::from("halt"),
         0x77 => String::from("ld (hl), a"),
         0x78 => String::from("ld a, b"),
         0x79 => String::from("ld a, c"),
