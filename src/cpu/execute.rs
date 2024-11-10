@@ -40,6 +40,15 @@ impl Cpu {
             0x8e => self.addc(Addr::HL),
             0x8f => self.addc(A),
 
+            0xC6 => self.add(Imm8),
+            0xD6 => self.sub(Imm8),
+            0xE6 => self.and(Imm8),
+            0xF6 => self.or(Imm8),
+            0xCE => self.addc(Imm8),
+            0xDE => self.subc(Imm8),
+            0xEE => self.xor(Imm8),
+            0xFE => self.cp(Imm8),
+
             0x90 => self.sub(B),
             0x91 => self.sub(C),
             0x92 => self.sub(D),

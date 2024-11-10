@@ -35,6 +35,15 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x8e => String::from("adc a, (hl)"),
         0x8f => String::from("adc a, a"),
 
+        0xC6 => format!("add a, #${:02x}", imm8),
+        0xD6 => format!("sub a, #${:02x}", imm8),
+        0xE6 => format!("and a, #${:02x}", imm8),
+        0xF6 => format!("or a, #${:02x}", imm8),
+        0xCE => format!("adc a, #${:02x}", imm8),
+        0xDE => format!("sbc a, #${:02x}", imm8),
+        0xEE => format!("xor a, #${:02x}", imm8),
+        0xFE => format!("cp a, #${:02x}", imm8),
+
         0x90 => String::from("sub a, b"),
         0x91 => String::from("sub a, c"),
         0x92 => String::from("sub a, d"),

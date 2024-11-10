@@ -117,7 +117,6 @@ impl Cpu {
         let carry = test_carry_8(acc, addend, carry_value);
         let half = test_half_carry_8(acc, addend, carry_value);
 
-        println!("In flag: {}", half);
         self.reg.set_flag(ZERO, res == 0);
         self.reg.set_flag(HALF, half);
         self.reg.set_flag(CARRY, carry);
@@ -130,6 +129,44 @@ mod tests {
     use crate::debug_tools::handle_debug;
 
     use super::*;
+
+    #[test]
+    fn it_should_adc_imm8() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0xCE, &mut cpu);
+        cpu.memory.write_byte(cpu.memory.pc + 1, 0xa);
+        cpu.reg.set_flag(CARRY, true);
+        cpu.reg.a = 0xaa;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0xaa + 0xa + 1);
+    }
+
+    #[test]
+    fn it_should_sbc_imm8() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0xDE, &mut cpu);
+        cpu.memory.write_byte(cpu.memory.pc + 1, 0xa);
+        cpu.reg.set_flag(CARRY, true);
+        cpu.reg.a = 0xaa;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0xaa - 0xa - 1);
+    }
+
+    #[test]
+    fn it_should_add_imm8() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0xC6, &mut cpu);
+        cpu.memory.write_byte(cpu.memory.pc + 1, 0xa);
+        cpu.reg.a = 0x5;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0x5 + 0xa);
+    }
 
     #[test]
     fn it_should_xor() {
