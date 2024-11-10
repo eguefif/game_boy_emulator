@@ -22,6 +22,8 @@ impl Cpu {
     pub fn execute(&mut self, opcode: u8) {
         match opcode {
             0x0 => {}
+            //******* Arithmetic Logic Unit (ALU)
+            0x80 => self.add(B),
 
             //******* Flow control
             0x76 => self.halt(),

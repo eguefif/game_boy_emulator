@@ -9,6 +9,7 @@ use crate::cpu::registers::Registers;
 use crate::debug_tools::handle_debug;
 use crate::memorybus::MemoryBus;
 
+pub mod alu;
 pub mod execute;
 pub mod flow;
 pub mod ld;

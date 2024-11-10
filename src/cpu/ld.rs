@@ -255,7 +255,7 @@ mod tests {
         assert_eq!(cpu.reg.bc(), 0xffbd)
     }
 
-    fn set_first_instruction(value: u8, cpu: &mut Cpu) {
+    pub fn set_first_instruction(value: u8, cpu: &mut Cpu) {
         let pc = cpu.memory.pc;
         cpu.memory.write_byte(pc, value);
     }
