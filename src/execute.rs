@@ -10,6 +10,7 @@ pub enum Addr {
     HLI,
     HLD,
     Imm8,
+    ZeroPage,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -23,8 +24,8 @@ impl Cpu {
             // Load
             0x02 => self.load(Addr::BC, A),
             0x12 => self.load(Addr::DE, A),
-            0x22 => self.load(Addr::HL, A),
-            0x32 => self.load(Addr::HL, A),
+            0x22 => self.load(Addr::HLI, A),
+            0x32 => self.load(Addr::HLD, A),
             0x0A => self.load(A, Addr::BC),
             0x1A => self.load(A, Addr::DE),
             0x2A => self.load(A, Addr::HLI),
@@ -39,6 +40,11 @@ impl Cpu {
             0x2E => self.load(L, Imm8),
             0x3E => self.load(A, Imm8),
 
+            //Ld ZeroPage
+            0xE0 => self.load(Addr::ZeroPage, A),
+            0xF0 => self.load(A, Addr::ZeroPage),
+
+            //Ld regular
             0x40 => self.load(B, B),
             0x41 => self.load(B, C),
             0x42 => self.load(B, D),

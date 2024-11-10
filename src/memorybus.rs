@@ -11,12 +11,24 @@ const ROM_B2_START: u16 = 0x4000;
 const ROM_B2_END: u16 = 0x7FFF;
 const ROM_B2_SIZE: u16 = ROM_B2_END - ROM_B2_START + 1;
 
-const TOTAL_ROM_SIZE: u16 = ROM_B2_SIZE + ROM_B1_SIZE + 1;
+const IOREG_START: u16 = 0xFF00;
+const IOREG_END: u16 = 0xFF7F;
+const IOREG_SIZE: u16 = IOREG_END - IOREG_START + 1;
 
+const HRAM_START: u16 = 0xFF80;
+const HRAM_END: u16 = 0xFFFE;
+const HRAM_SIZE: u16 = HRAM_END - HRAM_START + 1;
+
+const TOTAL_ROM_SIZE: u16 = ROM_B2_SIZE + ROM_B1_SIZE + 1;
 const MEM_MAX: u16 = 0xFFFF;
+
+const INTERRUPT_EI: u16 = 0xFFFF;
 
 pub struct MemoryBus {
     rom: [u8; TOTAL_ROM_SIZE as usize],
+    io_reg: [u8; IOREG_SIZE as usize],
+    hram: [u8; HRAM_SIZE as usize],
+    ie: u8,
     pub pc: u16,
     pub cycle: u128,
 }
@@ -25,8 +37,38 @@ impl MemoryBus {
     pub fn new() -> MemoryBus {
         MemoryBus {
             rom: get_rom(),
+            io_reg: [0; IOREG_SIZE as usize],
+            hram: [0; HRAM_SIZE as usize],
             pc: 0x100,
+            ie: 0,
             cycle: 0,
+        }
+    }
+
+    pub fn read(&mut self, at: u16) -> u8 {
+        let loc = at & MEM_MAX;
+
+        match loc {
+            0..=ROM_B2_END => self.rom[loc as usize],
+            IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize],
+            HRAM_START..=HRAM_END => self.hram[(loc - HRAM_START) as usize],
+            INTERRUPT_EI => self.ie,
+            _ => {
+                println!("Read: memory not handled: {}", loc);
+                0
+            }
+        }
+    }
+
+    fn write(&mut self, at: u16, value: u8) {
+        let loc = at & MEM_MAX;
+
+        match loc {
+            0..=ROM_B2_END => self.rom[loc as usize] = value,
+            IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize] = value,
+            HRAM_START..=HRAM_END => self.hram[(loc - HRAM_START) as usize] = value,
+            INTERRUPT_EI => self.ie = value,
+            _ => println!("Write: memory not handled: {}", loc),
         }
     }
 
@@ -35,18 +77,6 @@ impl MemoryBus {
         self.inc_pc();
         self.tick();
         retval
-    }
-
-    pub fn read(&mut self, at: u16) -> u8 {
-        let loc = at & MEM_MAX;
-
-        match loc {
-            0..=ROM_B2_END => self.rom[loc as usize],
-            _ => {
-                println!("Read: memory not handled: {}", loc);
-                0
-            }
-        }
     }
 
     fn inc_pc(&mut self) {
@@ -67,15 +97,6 @@ impl MemoryBus {
 
     pub fn tick(&mut self) {
         self.cycle += 1;
-    }
-
-    fn write(&mut self, at: u16, value: u8) {
-        let loc = at & MEM_MAX;
-
-        match loc {
-            0..=ROM_B2_END => self.rom[loc as usize] = value,
-            _ => println!("Write: memory not handled: {}", loc),
-        }
     }
 
     pub fn fetch_next_word(&mut self) -> u16 {

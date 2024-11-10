@@ -46,7 +46,7 @@ mod tests {
     fn it_should_mov_c_to_b() {
         let mut cpu = Cpu::new();
         cpu.reg.c = 0xa;
-        set_instruction(0x41, &mut cpu);
+        set_first_instruction(0x41, &mut cpu);
 
         cpu.step();
 
@@ -60,7 +60,7 @@ mod tests {
 
         let loc = 0x10;
         cpu.reg.set_hl(loc);
-        set_instruction(0x77, &mut cpu);
+        set_first_instruction(0x77, &mut cpu);
 
         cpu.step();
 
@@ -72,7 +72,7 @@ mod tests {
         let mut cpu = Cpu::new();
         cpu.memory.write_byte(cpu.memory.pc + 1, 0xa);
 
-        set_instruction(0x06, &mut cpu);
+        set_first_instruction(0x06, &mut cpu);
         cpu.reg.b = 0;
 
         cpu.step();
@@ -80,7 +80,20 @@ mod tests {
         assert_eq!(cpu.reg.b, 0xa)
     }
 
-    fn set_instruction(value: u8, cpu: &mut Cpu) {
+    #[test]
+    fn it_should_ld_a_in_zero_page() {
+        let mut cpu = Cpu::new();
+
+        set_first_instruction(0xE0, &mut cpu);
+        cpu.memory.write_byte(cpu.memory.pc + 1, 0xBD);
+        cpu.reg.a = 0xa;
+
+        cpu.step();
+
+        assert_eq!(cpu.memory.read(0xFFBD), 0xa)
+    }
+
+    fn set_first_instruction(value: u8, cpu: &mut Cpu) {
         let pc = cpu.memory.pc;
         cpu.memory.write_byte(pc, value);
     }
