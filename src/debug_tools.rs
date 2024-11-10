@@ -17,6 +17,24 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
     match opcode {
         0x0 => String::from("nop"),
 
+        //******* Arithmetic Logic Unit (ALU)
+        0x80 => String::from("add a, b"),
+        0x81 => String::from("add a, c"),
+        0x82 => String::from("add a, d"),
+        0x83 => String::from("add a, e"),
+        0x84 => String::from("add a, h"),
+        0x85 => String::from("add a, l"),
+        0x86 => String::from("add a, (hl)"),
+        0x87 => String::from("add a, a"),
+        0x88 => String::from("adc a, b"),
+        0x89 => String::from("adc a, c"),
+        0x8a => String::from("adc a, d"),
+        0x8b => String::from("adc a, e"),
+        0x8c => String::from("adc a, h"),
+        0x8d => String::from("adc a, l"),
+        0x8e => String::from("adc a, (hl)"),
+        0x8f => String::from("adc a, a"),
+
         //******* Flow control
         0x76 => String::from("halt"),
 

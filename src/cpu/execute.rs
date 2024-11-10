@@ -24,6 +24,21 @@ impl Cpu {
             0x0 => {}
             //******* Arithmetic Logic Unit (ALU)
             0x80 => self.add(B),
+            0x81 => self.add(C),
+            0x82 => self.add(D),
+            0x83 => self.add(E),
+            0x84 => self.add(H),
+            0x85 => self.add(L),
+            0x86 => self.add(Addr::HL),
+            0x87 => self.add(A),
+            0x88 => self.addc(B),
+            0x89 => self.addc(C),
+            0x8a => self.addc(D),
+            0x8b => self.addc(E),
+            0x8c => self.addc(H),
+            0x8d => self.addc(L),
+            0x8e => self.addc(Addr::HL),
+            0x8f => self.addc(A),
 
             //******* Flow control
             0x76 => self.halt(),
