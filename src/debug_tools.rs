@@ -19,6 +19,8 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
 
         //Ld sp
         0x08 => format!("ld (&{:04x}), sp", imm16),
+        0xF8 => format!("ld hl, sp+#${:02x} ({})", imm8 as i8, imm8 as i8),
+        0xF9 => String::from("ld sp, hl"),
 
         // Ld addr16
         0x02 => String::from("ld (bc), a"),

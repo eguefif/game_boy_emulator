@@ -1,11 +1,33 @@
 use crate::cpu::read_write_cpu::{Source8, Target16, Target8};
+use crate::cpu::registers::Flags::{CARRY, HALF, N, ZERO};
 use crate::cpu::Cpu;
 
+use super::registers::{test_carry, test_half_carry};
+
 impl Cpu {
-    pub fn load_sp_imm16(&mut self) {
+    pub fn load_imm16_sp(&mut self) {
         let low = self.reg.sp as u8;
         let loc = self.memory.fetch_next_word();
         self.memory.write_byte(loc, low);
+    }
+
+    pub fn load_hl_sp_imm8(&mut self) {
+        let addend = self.memory.fetch_next_byte() as i8;
+        let sp = self.reg.sp;
+        let result = sp.wrapping_add(addend as i16 as u16);
+        self.reg.set_hl(result);
+        self.reg.set_flag(ZERO, false);
+        self.reg.set_flag(N, false);
+        let carry = test_carry(sp as u8, addend as u8);
+        let half_carry = test_half_carry(sp as u8, addend as u8);
+        self.reg.set_flag(CARRY, carry);
+        self.reg.set_flag(HALF, half_carry);
+        self.memory.tick();
+    }
+
+    pub fn load_sp_hl(&mut self) {
+        self.reg.sp = self.reg.hl();
+        self.memory.tick();
     }
 
     pub fn load16_imm<T: Copy>(&mut self, target: T)
@@ -27,7 +49,63 @@ impl Cpu {
 
 #[cfg(test)]
 mod tests {
+    use crate::debug_tools::handle_debug;
+
     use super::*;
+
+    #[test]
+    fn ldsp8_should_set_carry() {
+        let mut cpu = Cpu::new();
+        cpu.reg.sp = 0xFF;
+        let value: i8 = 1;
+        cpu.reg.set_hl(0x0);
+        cpu.memory.write_byte(cpu.memory.pc + 1, value as u8);
+        set_first_instruction(0xF8, &mut cpu);
+
+        cpu.step();
+
+        assert!(cpu.reg.is_flag(HALF));
+    }
+
+    #[test]
+    fn ldsp8_should_set_half_carry() {
+        let mut cpu = Cpu::new();
+        cpu.reg.sp = 0xF;
+        let value: i8 = 1;
+        cpu.reg.set_hl(0x0);
+        cpu.memory.write_byte(cpu.memory.pc + 1, value as u8);
+        set_first_instruction(0xF8, &mut cpu);
+
+        cpu.step();
+
+        assert!(cpu.reg.is_flag(HALF));
+    }
+
+    #[test]
+    fn it_should_ld_sp_s8_neg_low_in_hl() {
+        let mut cpu = Cpu::new();
+        cpu.reg.sp = 0xaabb;
+        let value: i8 = -5;
+        cpu.reg.set_hl(0x0);
+        cpu.memory.write_byte(cpu.memory.pc + 1, value as u8);
+        set_first_instruction(0xF8, &mut cpu);
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.hl(), 0xaabb - 5)
+    }
+
+    #[test]
+    fn it_should_ld_hl_low_in_sp() {
+        let mut cpu = Cpu::new();
+        cpu.reg.sp = 0x0;
+        cpu.reg.set_hl(0xabcd);
+        set_first_instruction(0xF9, &mut cpu);
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.sp, 0xabcd);
+    }
 
     #[test]
     fn it_should_ld_sp_low_in_imm16() {

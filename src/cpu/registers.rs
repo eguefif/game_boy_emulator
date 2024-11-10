@@ -111,6 +111,16 @@ impl Registers {
     }
 }
 
+pub fn test_half_carry(value: u8, addend: u8) -> bool {
+    let mask = 0b_0000_1111;
+    (value & mask) + (addend & mask) > mask
+}
+
+pub fn test_carry(value: u8, addend: u8) -> bool {
+    let (_, overflow) = value.overflowing_add(addend);
+    overflow
+}
+
 pub fn combine(high: u16, low: u16) -> u16 {
     (high << 8) | low
 }

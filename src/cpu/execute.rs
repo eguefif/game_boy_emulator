@@ -24,7 +24,9 @@ impl Cpu {
             0x0 => {}
 
             // Load sp
-            0x08 => self.load_sp_imm16(),
+            0x08 => self.load_imm16_sp(),
+            0xF8 => self.load_hl_sp_imm8(),
+            0xF9 => self.load_sp_hl(),
 
             // Load addr
             0x02 => self.load(Addr::BC, A),
