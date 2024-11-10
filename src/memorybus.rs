@@ -1,6 +1,8 @@
 #![allow(dead_code)]
 #![allow(clippy::new_without_default)]
 
+use std::{env, fs::File, io::Read};
+
 const ROM_B1_END: u16 = 0x3FFF;
 const ROM_B1_SIZE: u16 = ROM_B1_END + 1;
 
@@ -14,7 +16,7 @@ pub struct MemoryBus {
     rom1: [u8; ROM_B1_SIZE as usize],
     rom2: [u8; ROM_B2_SIZE as usize],
     pub pc: u16,
-    cycle: u128,
+    pub cycle: u128,
 }
 
 impl MemoryBus {
@@ -75,4 +77,27 @@ impl MemoryBus {
             _ => println!("Write: memory not handled: {}", loc),
         }
     }
+}
+
+fn get_rom() -> [u8; ROM_B1_SIZE as usize] {
+    let filename = get_filename();
+    if filename == "error" {
+        return [0; ROM_B1_SIZE as usize];
+    }
+    let mut rom = [0; ROM_B1_SIZE as usize];
+    match File::open(filename) {
+        Ok(mut file) => {
+            let _ = file.read(&mut rom).unwrap();
+            rom
+        }
+        Err(_) => rom,
+    }
+}
+
+fn get_filename() -> String {
+    let arg: Vec<String> = env::args().collect();
+    if arg.len() != 2 {
+        return String::from("error");
+    }
+    String::from(&arg[1])
 }
