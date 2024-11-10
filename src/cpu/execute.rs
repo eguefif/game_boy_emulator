@@ -57,6 +57,15 @@ impl Cpu {
             0x9e => self.subc(Addr::HL),
             0x9f => self.subc(A),
 
+            0xB8 => self.cp(B),
+            0xB9 => self.cp(C),
+            0xBA => self.cp(D),
+            0xBB => self.cp(E),
+            0xBC => self.cp(H),
+            0xBD => self.cp(L),
+            0xBE => self.cp(Addr::HL),
+            0xBF => self.cp(A),
+
             //******* Flow control
             0x76 => self.halt(),
 

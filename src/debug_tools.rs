@@ -52,6 +52,15 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x9e => String::from("sbc a, (hl)"),
         0x9f => String::from("sbc a, a"),
 
+        0xB8 => String::from("cp a, b"),
+        0xB9 => String::from("cp a, c"),
+        0xBA => String::from("cp a, d"),
+        0xBB => String::from("cp a, e"),
+        0xBC => String::from("cp a, h"),
+        0xBD => String::from("cp a, l"),
+        0xBE => String::from("cp a, (hl)"),
+        0xBF => String::from("cp a, a"),
+
         //******* Flow control
         0x76 => String::from("halt"),
 

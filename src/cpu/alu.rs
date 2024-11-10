@@ -8,6 +8,14 @@ use crate::cpu::registers::test_carry_8;
 use super::registers::test_half_carry_8;
 
 impl Cpu {
+    pub fn cp<S: Copy>(&mut self, source: S)
+    where
+        Self: Source8<S>,
+    {
+        let subend = self.read(source);
+        self.get_sub_result(subend, 0);
+    }
+
     pub fn sub<S: Copy>(&mut self, source: S)
     where
         Self: Source8<S>,
