@@ -20,6 +20,11 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         //******* Arithmetic Logic Unit (ALU)
         0xE8 => format!("add sp, #${:02x}", imm8),
 
+        0x09 => String::from("add hl, bc"),
+        0x19 => String::from("add hl, de"),
+        0x29 => String::from("add hl, hl"),
+        0x39 => String::from("add hl, sp"),
+
         0x04 => String::from("inc b"),
         0x14 => String::from("inc d"),
         0x24 => String::from("inc d"),
@@ -123,14 +128,12 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x08 => format!("ld (${:04x}), sp", imm16),
         0xF8 => format!("ld hl, sp+#${:02x} ({})", imm8 as i8, imm8 as i8),
         0xF9 => String::from("ld sp, hl"),
-        //
-        // ld imm16
+
         0x01 => format!("ld bc, ${:04x}", imm16),
         0x11 => format!("ld de, ${:04x}", imm16),
         0x21 => format!("ld hl, ${:04x}", imm16),
         0x31 => format!("ld sp, ${:04x}", imm16),
 
-        // Ld addr16
         0x02 => String::from("ld (bc), a"),
         0x12 => String::from("ld (de), a"),
         0x22 => String::from("ld (hl+), a"),
@@ -140,7 +143,6 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x2A => String::from("ld a, (hl+)"),
         0x3A => String::from("ld a, (hl-)"),
 
-        // Ld imm8
         0x06 => format!("ld b, #${:02x}", imm8),
         0x16 => format!("ld d, #${:02x}", imm8),
         0x26 => format!("ld h, #${:02x}", imm8),
@@ -150,17 +152,14 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x2E => format!("ld l, #${:02x}", imm8),
         0x3E => format!("ld a, #${:02x}", imm8),
 
-        //Ld ZeroPage
         0xE0 => format!("ld (${:02x}), a", combine(0xFF, imm8 as u16)),
         0xF0 => format!("ld a, (${:02x})", combine(0xFF, imm8 as u16)),
         0xE2 => format!("ld (${:02x}), a", combine(0xFF, cpu.reg.c as u16)),
         0xF2 => format!("ld a, (${:02x})", combine(0xFF, cpu.reg.c as u16)),
 
-        //Ld a16
         0xEA => format!("ld (${:04x}), a", imm16),
         0xFA => format!("ld a, (${:04x})", imm16),
 
-        // Ld regular
         0x40 => String::from("ld b, b"),
         0x41 => String::from("ld b, c"),
         0x42 => String::from("ld b, d"),

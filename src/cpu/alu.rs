@@ -8,6 +8,25 @@ use crate::cpu::registers::test_carry_8;
 use super::registers::test_half_carry_8;
 
 impl Cpu {
+    pub fn add16<T: Copy>(&mut self, target: T, source: T)
+    where
+        Self: Target16<T> + Source16<T>,
+    {
+        let addend = self.read16(source);
+        let value = self.read16(target);
+        let res = value.wrapping_add(addend);
+        self.write16(target, res);
+
+        self.reg.set_flag(N, false);
+        self.reg
+            .set_flag(HALF, ((value & 0xFF) + (addend & 0xFF)) > 0xFF);
+        self.reg.set_flag(
+            CARRY,
+            ((value as u32 & 0xFFFF) + (addend as u32 & 0xFFFF)) > 0xFFFF,
+        );
+        self.memory.tick();
+    }
+
     pub fn dec16<T: Copy>(&mut self, target: T)
     where
         Self: Target16<T> + Source16<T>,
@@ -185,6 +204,34 @@ mod tests {
     use crate::debug_tools::handle_debug;
 
     use super::*;
+
+    #[test]
+    fn it_should_add_hl_with_bc_with_half_carry() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0x09, &mut cpu);
+        cpu.reg.set_hl(0xFF);
+        cpu.reg.set_bc(0x1);
+        cpu.reg.f = 0;
+
+        cpu.step();
+
+        assert!(cpu.reg.is_flag(HALF));
+        assert_eq!(cpu.reg.hl(), 0x100);
+    }
+
+    #[test]
+    fn it_should_add_hl_with_bc_with_carry() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0x09, &mut cpu);
+        cpu.reg.set_hl(0xFFFF);
+        cpu.reg.set_bc(0x1);
+        cpu.reg.f = 0;
+
+        cpu.step();
+
+        assert!(cpu.reg.is_flag(CARRY));
+        assert_eq!(cpu.reg.hl(), 0x0);
+    }
 
     #[test]
     fn it_should_decrement_b_and_set_half_carry() {
