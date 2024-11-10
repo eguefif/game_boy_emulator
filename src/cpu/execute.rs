@@ -23,6 +23,8 @@ impl Cpu {
         match opcode {
             0x0 => {}
             //******* Arithmetic Logic Unit (ALU)
+            0xE8 => self.add_sp_s8(),
+
             0x80 => self.add(B),
             0x81 => self.add(C),
             0x82 => self.add(D),

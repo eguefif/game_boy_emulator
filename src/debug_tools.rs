@@ -18,6 +18,7 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x0 => String::from("nop"),
 
         //******* Arithmetic Logic Unit (ALU)
+        0xE8 => format!("add sp, #${:02x}", imm8),
         0x80 => String::from("add a, b"),
         0x81 => String::from("add a, c"),
         0x82 => String::from("add a, d"),

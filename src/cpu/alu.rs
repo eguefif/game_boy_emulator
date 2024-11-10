@@ -8,6 +8,18 @@ use crate::cpu::registers::test_carry_8;
 use super::registers::test_half_carry_8;
 
 impl Cpu {
+    pub fn add_sp_s8(&mut self) {
+        let value = self.memory.fetch_next_byte() as i8;
+        let sp = self.reg.sp;
+        self.reg.sp = sp.wrapping_add(value as u8 as u16);
+        let carry = ((sp as u32 & 0xFFFF) + (value as u8 as u32 & 0xFFFF)) > 0xFFFF;
+        let half = ((sp & 0xFF) + (value as u8 as u16 & 0xFF)) > 0xFF;
+        self.reg.set_flag(ZERO, false);
+        self.reg.set_flag(N, false);
+        self.reg.set_flag(HALF, half);
+        self.reg.set_flag(CARRY, carry);
+    }
+
     pub fn and<S: Copy>(&mut self, source: S)
     where
         Self: Source8<S>,
@@ -129,6 +141,47 @@ mod tests {
     use crate::debug_tools::handle_debug;
 
     use super::*;
+
+    #[test]
+    fn it_should_add_sp_s8_and_set_half_carry() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0xE8, &mut cpu);
+        let value: i8 = 1;
+        cpu.memory.write_byte(cpu.memory.pc + 1, value as u8);
+        cpu.reg.f = 0;
+        cpu.reg.sp = 0xFF;
+
+        cpu.step();
+
+        assert!(cpu.reg.is_flag(HALF));
+    }
+
+    #[test]
+    fn it_should_add_sp_s8_and_set_carry() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0xE8, &mut cpu);
+        let value: i8 = 1;
+        cpu.memory.write_byte(cpu.memory.pc + 1, value as u8);
+        cpu.reg.f = 0;
+        cpu.reg.sp = 0xFFFF;
+
+        cpu.step();
+
+        assert!(cpu.reg.is_flag(CARRY));
+    }
+
+    #[test]
+    fn it_should_add_sp_s8() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0xE8, &mut cpu);
+        let value: i8 = -5;
+        cpu.memory.write_byte(cpu.memory.pc + 1, value as u8);
+        cpu.reg.sp = 0xaa;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.sp, 0xaa + value as u8 as u16);
+    }
 
     #[test]
     fn it_should_adc_imm8() {
