@@ -8,6 +8,45 @@ use crate::cpu::registers::test_carry_8;
 use super::registers::test_half_carry_8;
 
 impl Cpu {
+    pub fn and<S: Copy>(&mut self, source: S)
+    where
+        Self: Source8<S>,
+    {
+        let value = self.read(source);
+        let acc = self.reg.a;
+        self.reg.a = value & acc;
+        self.reg.set_flag(ZERO, self.reg.a == 0);
+        self.reg.set_flag(N, false);
+        self.reg.set_flag(HALF, true);
+        self.reg.set_flag(CARRY, false);
+    }
+
+    pub fn xor<S: Copy>(&mut self, source: S)
+    where
+        Self: Source8<S>,
+    {
+        let value = self.read(source);
+        let acc = self.reg.a;
+        self.reg.a = value ^ acc;
+        self.reg.set_flag(ZERO, self.reg.a == 0);
+        self.reg.set_flag(N, false);
+        self.reg.set_flag(HALF, false);
+        self.reg.set_flag(CARRY, false);
+    }
+
+    pub fn or<S: Copy>(&mut self, source: S)
+    where
+        Self: Source8<S>,
+    {
+        let value = self.read(source);
+        let acc = self.reg.a;
+        self.reg.a = value | acc;
+        self.reg.set_flag(ZERO, self.reg.a == 0);
+        self.reg.set_flag(N, false);
+        self.reg.set_flag(HALF, false);
+        self.reg.set_flag(CARRY, false);
+    }
+
     pub fn cp<S: Copy>(&mut self, source: S)
     where
         Self: Source8<S>,
@@ -91,6 +130,47 @@ mod tests {
     use crate::debug_tools::handle_debug;
 
     use super::*;
+
+    #[test]
+    fn it_should_xor() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0xAE, &mut cpu);
+        cpu.reg.set_flag(CARRY, true);
+        cpu.reg.a = 0b_1111_1000;
+        let loc = 0x10;
+        cpu.memory.write_byte(loc, 0b_0100_1100);
+        cpu.reg.set_hl(loc);
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0b_1011_0100);
+    }
+
+    #[test]
+    fn it_should_or() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0xB1, &mut cpu);
+        cpu.reg.set_flag(CARRY, true);
+        cpu.reg.a = 0b_1111_1000;
+        cpu.reg.c = 0b_0100_1100;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0b_1111_1100);
+    }
+
+    #[test]
+    fn it_should_and() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0xA0, &mut cpu);
+        cpu.reg.set_flag(CARRY, true);
+        cpu.reg.a = 0b_1111_1000;
+        cpu.reg.b = 0b_0100_1111;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0b_0100_1000);
+    }
 
     #[test]
     fn it_should_sub_0x9a() {
