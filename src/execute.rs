@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use crate::cpu::Cpu;
 use crate::registers::Addr::{BC, DE, HL};
 use crate::registers::Reg8::{A, B, C, D, E, H, L};
