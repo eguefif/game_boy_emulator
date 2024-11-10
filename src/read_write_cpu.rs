@@ -57,9 +57,13 @@ impl Source8<Addr> for Cpu {
                 self.reg.set_hl(hl.wrapping_sub(1));
                 hl
             }
-            Addr::Imm8 => self.memory.fetch_next_word(),
+            Addr::Imm16 => self.memory.fetch_next_word(),
             Addr::ZeroPage => {
                 let low = self.memory.fetch_next_byte();
+                combine(0xFF, low as u16)
+            }
+            Addr::ZeroPageC => {
+                let low = self.reg.c;
                 combine(0xFF, low as u16)
             }
         };
@@ -84,9 +88,13 @@ impl Target8<Addr> for Cpu {
                 self.reg.set_hl(hl.wrapping_sub(1));
                 hl
             }
-            Addr::Imm8 => self.memory.fetch_next_word(),
+            Addr::Imm16 => self.memory.fetch_next_word(),
             Addr::ZeroPage => {
                 let low = self.memory.fetch_next_byte();
+                combine(0xFF, low as u16)
+            }
+            Addr::ZeroPageC => {
+                let low = self.reg.c;
                 combine(0xFF, low as u16)
             }
         };

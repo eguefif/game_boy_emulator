@@ -93,6 +93,74 @@ mod tests {
         assert_eq!(cpu.memory.read(0xFFBD), 0xa)
     }
 
+    #[test]
+    fn it_should_ld_zero_page_in_a() {
+        let mut cpu = Cpu::new();
+
+        set_first_instruction(0xF0, &mut cpu);
+        cpu.memory.write_byte(cpu.memory.pc + 1, 0xBD);
+        cpu.memory.write_byte(0xFFBD, 0xb);
+        cpu.reg.a = 0x0;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0xb)
+    }
+
+    #[test]
+    fn it_should_ld_a_in_zero_pagec() {
+        let mut cpu = Cpu::new();
+
+        set_first_instruction(0xE2, &mut cpu);
+        cpu.reg.a = 0xa;
+        cpu.reg.c = 0xBD;
+
+        cpu.step();
+
+        assert_eq!(cpu.memory.read(0xFFBD), 0xa)
+    }
+
+    #[test]
+    fn it_should_ld_zero_pagec_in_a() {
+        let mut cpu = Cpu::new();
+
+        set_first_instruction(0xF2, &mut cpu);
+        cpu.memory.write_byte(0xFFBD, 0xb);
+        cpu.reg.a = 0x0;
+        cpu.reg.c = 0xBD;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0xb)
+    }
+
+    #[test]
+    fn it_should_ld_addr_a16_in_a() {
+        let mut cpu = Cpu::new();
+
+        set_first_instruction(0xFA, &mut cpu);
+        cpu.memory.write_word(cpu.memory.pc + 1, 0xBDFF);
+        cpu.memory.write_byte(0xFFBD, 0xb);
+        cpu.reg.a = 0x0;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0xb)
+    }
+
+    #[test]
+    fn it_should_ld_a_in_addr16() {
+        let mut cpu = Cpu::new();
+
+        set_first_instruction(0xEA, &mut cpu);
+        cpu.memory.write_word(cpu.memory.pc + 1, 0xBDFF);
+        cpu.reg.a = 0xa;
+
+        cpu.step();
+
+        assert_eq!(cpu.memory.read(0xFFBD), 0xa)
+    }
+
     fn set_first_instruction(value: u8, cpu: &mut Cpu) {
         let pc = cpu.memory.pc;
         cpu.memory.write_byte(pc, value);

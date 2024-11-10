@@ -9,8 +9,9 @@ pub enum Addr {
     HL,
     HLI,
     HLD,
-    Imm8,
+    Imm16,
     ZeroPage,
+    ZeroPageC,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -43,6 +44,12 @@ impl Cpu {
             //Ld ZeroPage
             0xE0 => self.load(Addr::ZeroPage, A),
             0xF0 => self.load(A, Addr::ZeroPage),
+            0xE2 => self.load(Addr::ZeroPageC, A),
+            0xF2 => self.load(A, Addr::ZeroPageC),
+
+            //Ld addr a16
+            0xEA => self.load(Addr::Imm16, A),
+            0xFA => self.load(A, Addr::Imm16),
 
             //Ld regular
             0x40 => self.load(B, B),

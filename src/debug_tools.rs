@@ -1,4 +1,4 @@
-use crate::cpu::Cpu;
+use crate::{cpu::Cpu, registers::combine};
 
 pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
     print!("${:<04x}: {:2x}    |", cpu.memory.pc - 1, opcode);
@@ -11,6 +11,9 @@ pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
 fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
     let pc = cpu.memory.pc;
     let imm8 = cpu.memory.read(pc);
+    let low = cpu.memory.read(pc);
+    let high = cpu.memory.read(pc + 1);
+    let imm16 = combine(high as u16, low as u16);
     match opcode {
         0x0 => String::from("nop"),
 
@@ -31,6 +34,15 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x1E => format!("ld e, #${:02x}", imm8),
         0x2E => format!("ld l, #${:02x}", imm8),
         0x3E => format!("ld a, #${:02x}", imm8),
+
+        //Ld ZeroPage
+        0xE0 => format!("ld (${:02x}), a", combine(0xFF, imm8 as u16)),
+        0xF0 => format!("ld a, (${:02x})", combine(0xFF, imm8 as u16)),
+        0xE2 => format!("ld (${:02x}), a", combine(0xFF, cpu.reg.c as u16)),
+        0xF2 => format!("ld a, (${:02x})", combine(0xFF, cpu.reg.c as u16)),
+
+        0xEA => format!("ld (${:04x}), a", imm16),
+        0xFA => format!("ld a, (${:04x})", imm16),
 
         0x40 => String::from("ld b, b"),
         0x41 => String::from("ld b, c"),
