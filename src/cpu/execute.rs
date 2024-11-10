@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
+use crate::cpu::registers::Reg16::{BC, DE, HL, SP};
+use crate::cpu::registers::Reg8::{A, B, C, D, E, H, L};
 use crate::cpu::Cpu;
-use crate::registers::Reg16::{BC, DE, HL, SP};
-use crate::registers::Reg8::{A, B, C, D, E, H, L};
 
 #[derive(Copy, Clone, Debug)]
 pub enum Addr {

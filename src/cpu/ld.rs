@@ -1,5 +1,5 @@
+use crate::cpu::read_write_cpu::{Source8, Target16, Target8};
 use crate::cpu::Cpu;
-use crate::read_write_cpu::{Source8, Target16, Target8};
 
 impl Cpu {
     pub fn load16_imm<T: Copy>(&mut self, target: T)

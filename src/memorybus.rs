@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 #![allow(clippy::new_without_default)]
 
-use crate::registers::{combine, split_u8};
+use crate::cpu::registers::{combine, split_u8};
 use std::{env, fs::File, io::Read};
 
 const ROM_B1_END: u16 = 0x3FFF;

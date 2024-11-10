@@ -1,10 +1,10 @@
 #![allow(unused_imports)]
+use crate::cpu::execute::{Addr, Imm8};
+use crate::cpu::registers::Reg16;
+use crate::cpu::registers::Reg16::{BC, DE, HL, SP};
+use crate::cpu::registers::Reg8::{A, B, C, D, E, H, L};
+use crate::cpu::registers::{combine, Reg8};
 use crate::cpu::Cpu;
-use crate::execute::{Addr, Imm8};
-use crate::registers::Reg16;
-use crate::registers::Reg16::{BC, DE, HL, SP};
-use crate::registers::Reg8::{A, B, C, D, E, H, L};
-use crate::registers::{combine, Reg8};
 
 pub trait Source8<T: Copy> {
     fn read(&mut self, src: T) -> u8;

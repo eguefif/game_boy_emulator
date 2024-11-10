@@ -1,4 +1,4 @@
-use crate::{cpu::Cpu, registers::combine};
+use crate::{cpu::registers::combine, cpu::Cpu};
 
 pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
     print!("${:<04x}: {:02x}    |", cpu.memory.pc - 1, opcode);
