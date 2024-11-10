@@ -8,6 +8,32 @@ use crate::cpu::registers::test_carry_8;
 use super::registers::test_half_carry_8;
 
 impl Cpu {
+    pub fn dec<T: Copy>(&mut self, target: T)
+    where
+        Self: Target8<T> + Source8<T>,
+    {
+        let value = self.read(target);
+        let res = value.wrapping_sub(1);
+        self.write(target, res);
+
+        self.reg.set_flag(ZERO, res == 0);
+        self.reg.set_flag(N, true);
+        self.reg.set_flag(HALF, (value & 0xF) < 1);
+    }
+
+    pub fn inc<T: Copy>(&mut self, target: T)
+    where
+        Self: Target8<T> + Source8<T>,
+    {
+        let value = self.read(target);
+        let res = value.wrapping_add(1);
+        self.write(target, res);
+
+        self.reg.set_flag(ZERO, res == 0);
+        self.reg.set_flag(N, false);
+        self.reg.set_flag(HALF, test_half_carry_8(value, 1, 0));
+    }
+
     pub fn add_sp_s8(&mut self) {
         let value = self.memory.fetch_next_byte() as i8;
         let sp = self.reg.sp;
@@ -141,6 +167,28 @@ mod tests {
     use crate::debug_tools::handle_debug;
 
     use super::*;
+
+    #[test]
+    fn it_should_decrement_b_and_set_half_carry() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0x05, &mut cpu);
+        cpu.reg.b = 0x10;
+
+        cpu.step();
+
+        assert!(cpu.reg.is_flag(HALF));
+    }
+
+    #[test]
+    fn it_should_increment_b() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0x04, &mut cpu);
+        cpu.reg.b = 0xa;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.b, 0xa + 1);
+    }
 
     #[test]
     fn it_should_add_sp_s8_and_set_half_carry() {

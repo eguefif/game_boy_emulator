@@ -19,6 +19,25 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
 
         //******* Arithmetic Logic Unit (ALU)
         0xE8 => format!("add sp, #${:02x}", imm8),
+
+        0x04 => String::from("inc b"),
+        0x14 => String::from("inc d"),
+        0x24 => String::from("inc d"),
+        0x34 => String::from("inc h"),
+        0x0C => String::from("inc c"),
+        0x1C => String::from("inc e"),
+        0x2C => String::from("inc l"),
+        0x3C => String::from("inc a"),
+
+        0x05 => String::from("dec b"),
+        0x15 => String::from("dec d"),
+        0x25 => String::from("dec d"),
+        0x35 => String::from("dec h"),
+        0x0D => String::from("dec c"),
+        0x1D => String::from("dec e"),
+        0x2D => String::from("dec l"),
+        0x3D => String::from("dec a"),
+
         0x80 => String::from("add a, b"),
         0x81 => String::from("add a, c"),
         0x82 => String::from("add a, d"),

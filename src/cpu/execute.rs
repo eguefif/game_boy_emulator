@@ -25,6 +25,24 @@ impl Cpu {
             //******* Arithmetic Logic Unit (ALU)
             0xE8 => self.add_sp_s8(),
 
+            0x04 => self.inc(B),
+            0x14 => self.inc(D),
+            0x24 => self.inc(H),
+            0x34 => self.inc(Addr::HL),
+            0x0C => self.inc(C),
+            0x1C => self.inc(E),
+            0x2C => self.inc(L),
+            0x3C => self.inc(A),
+
+            0x05 => self.dec(B),
+            0x15 => self.dec(D),
+            0x25 => self.dec(H),
+            0x35 => self.dec(Addr::HL),
+            0x0D => self.dec(C),
+            0x1D => self.dec(E),
+            0x2D => self.dec(L),
+            0x3D => self.dec(A),
+
             0x80 => self.add(B),
             0x81 => self.add(C),
             0x82 => self.add(D),
