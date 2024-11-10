@@ -24,6 +24,7 @@ pub enum Reg16 {
     BC,
     DE,
     HL,
+    SP,
 }
 
 pub enum Flags {
@@ -70,6 +71,14 @@ impl Registers {
 
     pub fn de(&mut self) -> u16 {
         combine(self.d as u16, self.e as u16)
+    }
+
+    pub fn set_bc(&mut self, value: u16) {
+        (self.b, self.c) = split_u8(value);
+    }
+
+    pub fn set_de(&mut self, value: u16) {
+        (self.d, self.e) = split_u8(value)
     }
 
     pub fn set_hl(&mut self, value: u16) {

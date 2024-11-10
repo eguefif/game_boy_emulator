@@ -5,7 +5,7 @@ use crate::debug_tools::handle_debug;
 use crate::execute::Addr;
 use crate::execute::Addr::{BC, DE, HL};
 use crate::memorybus::MemoryBus;
-use crate::read_write_cpu::{Source8, Target8};
+use crate::read_write_cpu::{Source8, Target16, Target8};
 use crate::registers::Reg8;
 use crate::registers::Reg8::{A, B, C, D, E, H, L};
 use crate::registers::Registers;
@@ -27,6 +27,14 @@ impl Cpu {
         let opcode = self.memory.fetch_next_byte();
         handle_debug(opcode, self);
         self.execute(opcode);
+    }
+
+    pub fn load16_imm<T: Copy>(&mut self, target: T)
+    where
+        Self: Target16<T>,
+    {
+        let value = self.memory.fetch_next_word();
+        self.write16(target, value);
     }
 
     pub fn load<O: Copy, I: Copy>(&mut self, target: O, src: I)
@@ -139,7 +147,7 @@ mod tests {
         let mut cpu = Cpu::new();
 
         set_first_instruction(0xFA, &mut cpu);
-        cpu.memory.write_word(cpu.memory.pc + 1, 0xBDFF);
+        cpu.memory.write_word(cpu.memory.pc + 1, 0xFFBD);
         cpu.memory.write_byte(0xFFBD, 0xb);
         cpu.reg.a = 0x0;
 
@@ -153,12 +161,24 @@ mod tests {
         let mut cpu = Cpu::new();
 
         set_first_instruction(0xEA, &mut cpu);
-        cpu.memory.write_word(cpu.memory.pc + 1, 0xBDFF);
+        cpu.memory.write_word(cpu.memory.pc + 1, 0xFFBD);
         cpu.reg.a = 0xa;
 
         cpu.step();
 
         assert_eq!(cpu.memory.read(0xFFBD), 0xa)
+    }
+
+    #[test]
+    fn it_should_ld_imm16_in_bc() {
+        let mut cpu = Cpu::new();
+
+        set_first_instruction(0x01, &mut cpu);
+        cpu.memory.write_word(cpu.memory.pc + 1, 0xffbd);
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.bc(), 0xffbd)
     }
 
     fn set_first_instruction(value: u8, cpu: &mut Cpu) {

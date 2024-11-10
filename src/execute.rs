@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 use crate::cpu::Cpu;
+use crate::registers::Reg16::{BC, DE, HL, SP};
 use crate::registers::Reg8::{A, B, C, D, E, H, L};
 
 #[derive(Copy, Clone, Debug)]
@@ -50,6 +51,12 @@ impl Cpu {
             //Ld addr a16
             0xEA => self.load(Addr::Imm16, A),
             0xFA => self.load(A, Addr::Imm16),
+            //
+            // ld imm16
+            0x01 => self.load16_imm(BC),
+            0x11 => self.load16_imm(DE),
+            0x21 => self.load16_imm(HL),
+            0x31 => self.load16_imm(SP),
 
             //Ld regular
             0x40 => self.load(B, B),

@@ -1,7 +1,8 @@
 #![allow(unused_imports)]
 use crate::cpu::Cpu;
 use crate::execute::{Addr, Imm8};
-use crate::registers::Reg16::{BC, DE, HL};
+use crate::registers::Reg16;
+use crate::registers::Reg16::{BC, DE, HL, SP};
 use crate::registers::Reg8::{A, B, C, D, E, H, L};
 use crate::registers::{combine, Reg8};
 
@@ -11,6 +12,21 @@ pub trait Source8<T: Copy> {
 
 pub trait Target8<T: Copy> {
     fn write(&mut self, src: T, value: u8);
+}
+
+pub trait Target16<T: Copy> {
+    fn write16(&mut self, src: T, value: u16);
+}
+
+impl Target16<Reg16> for Cpu {
+    fn write16(&mut self, target: Reg16, value: u16) {
+        match target {
+            BC => self.reg.set_bc(value),
+            DE => self.reg.set_de(value),
+            HL => self.reg.set_hl(value),
+            SP => self.reg.sp = value,
+        }
+    }
 }
 
 impl Source8<Reg8> for Cpu {

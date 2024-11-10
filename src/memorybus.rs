@@ -107,8 +107,8 @@ impl MemoryBus {
 
     pub fn write_word(&mut self, at: u16, value: u16) {
         let (high, low) = split_u8(value);
-        self.write_byte(at, high);
-        self.write_byte(at.wrapping_add(1), low);
+        self.write_byte(at, low);
+        self.write_byte(at.wrapping_add(1), high);
     }
 }
 

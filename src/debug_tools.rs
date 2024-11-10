@@ -1,7 +1,7 @@
 use crate::{cpu::Cpu, registers::combine};
 
 pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
-    print!("${:<04x}: {:2x}    |", cpu.memory.pc - 1, opcode);
+    print!("${:<04x}: {:02x}    |", cpu.memory.pc - 1, opcode);
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{} |", cpu.reg);
     print!(" cycles: {}", cpu.memory.cycle);
@@ -43,6 +43,12 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
 
         0xEA => format!("ld (${:04x}), a", imm16),
         0xFA => format!("ld a, (${:04x})", imm16),
+
+        // ld imm16
+        0x01 => format!("ld bc, ${:04x}", imm16),
+        0x11 => format!("ld de, ${:04x}", imm16),
+        0x21 => format!("ld hl, ${:04x}", imm16),
+        0x31 => format!("ld sp, ${:04x}", imm16),
 
         0x40 => String::from("ld b, b"),
         0x41 => String::from("ld b, c"),
