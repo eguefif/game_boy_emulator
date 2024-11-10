@@ -1,15 +1,16 @@
 use crate::cpu::Cpu;
 
 pub fn handle_debug(opcode: u8, cpu: &Cpu) {
-    print!("${:0<4}: {:2x}    |", cpu.memory.pc, opcode);
+    print!("${:<04x}: {:2x}    |", cpu.memory.pc - 1, opcode);
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{} |", cpu.reg);
     print!(" cycles: {}", cpu.memory.cycle);
     println!();
 }
 
-fn diassemble(opcode: u8, cpu: &Cpu) -> String {
+fn diassemble(opcode: u8, _cpu: &Cpu) -> String {
     match opcode {
+        0x0 => String::from("nop"),
         0x40 => String::from("ld b, b"),
         0x41 => String::from("ld b, c"),
         0x42 => String::from("ld b, d"),

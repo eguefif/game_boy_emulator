@@ -27,6 +27,7 @@ impl Cpu {
             memory: MemoryBus::new(),
         }
     }
+
     pub fn step(&mut self) {
         let opcode = self.memory.fetch_next_byte();
         handle_debug(opcode, self);
