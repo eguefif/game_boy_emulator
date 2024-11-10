@@ -22,8 +22,8 @@ impl Cpu {
 
         self.reg.set_flag(ZERO, false);
         self.reg.set_flag(N, false);
-        let carry = test_carry_8(sp as u8, addend as u8);
-        let half_carry = test_half_carry_8(sp as u8, addend as u8);
+        let carry = test_carry_8(sp as u8, addend as u8, 0);
+        let half_carry = test_half_carry_8(sp as u8, addend as u8, 0);
         self.reg.set_flag(CARRY, carry);
         self.reg.set_flag(HALF, half_carry);
     }

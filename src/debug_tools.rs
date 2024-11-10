@@ -35,6 +35,23 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x8e => String::from("adc a, (hl)"),
         0x8f => String::from("adc a, a"),
 
+        0x90 => String::from("sub a, b"),
+        0x91 => String::from("sub a, c"),
+        0x92 => String::from("sub a, d"),
+        0x93 => String::from("sub a, e"),
+        0x94 => String::from("sub a, h"),
+        0x95 => String::from("sub a, l"),
+        0x96 => String::from("sub a, (hl)"),
+        0x97 => String::from("sub a, a"),
+        0x98 => String::from("sbc a, b"),
+        0x99 => String::from("sbc a, c"),
+        0x9a => String::from("sbc a, d"),
+        0x9b => String::from("sbc a, e"),
+        0x9c => String::from("sbc a, h"),
+        0x9d => String::from("sbc a, l"),
+        0x9e => String::from("sbc a, (hl)"),
+        0x9f => String::from("sbc a, a"),
+
         //******* Flow control
         0x76 => String::from("halt"),
 
