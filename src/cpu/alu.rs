@@ -16,6 +16,14 @@ impl Cpu {
         self.reg.a = self.get_sub_result(subend, 0);
     }
 
+    pub fn subc<S: Copy>(&mut self, source: S)
+    where
+        Self: Source8<S>,
+    {
+        let subend = self.read(source);
+        self.reg.a = self.get_sub_result(subend, 1);
+    }
+
     pub fn get_sub_result(&mut self, value: u8, carry: u8) -> u8 {
         let acc = self.reg.a;
         let res = acc.wrapping_sub(value).wrapping_sub(carry);
@@ -75,6 +83,31 @@ mod tests {
     use crate::debug_tools::handle_debug;
 
     use super::*;
+
+    #[test]
+    fn it_should_sub_0x9a() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0x9a, &mut cpu);
+        cpu.reg.set_flag(CARRY, true);
+        cpu.reg.a = 0xab;
+        cpu.reg.d = 0x12;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0xab - 0x12 - 1);
+    }
+
+    #[test]
+    fn it_should_sub_0x90() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0x90, &mut cpu);
+        cpu.reg.a = 0xab;
+        cpu.reg.b = 0x12;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0xab - 0x12);
+    }
 
     #[test]
     fn it_should_sub_and_set_carry_with_carry() {
