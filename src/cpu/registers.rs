@@ -3,10 +3,10 @@
 
 use std::fmt;
 
-const ZERO: u8 = 0b_0000_1000;
-const N_FLAG: u8 = 0b_0000_0100;
-const HALF_CARRY: u8 = 0b_0000_0010;
-const CARRY: u8 = 0b_0000_0001;
+const ZERO: u8 = 0b_1000_0000;
+const N_FLAG: u8 = 0b_0100_0000;
+const HALF_CARRY: u8 = 0b_0010_0000;
+const CARRY: u8 = 0b_0001_0000;
 
 #[derive(Copy, Clone, Debug)]
 pub enum Reg8 {
@@ -183,27 +183,27 @@ mod tests {
     fn it_should_set_carry() {
         let mut reg = Registers::new();
 
-        reg.f = 0b_0000_0100;
+        reg.f = 0b_0100_0000;
         reg.set_flag(Flags::CARRY, true);
 
-        assert_eq!(reg.f, 0b_0000_0101)
+        assert_eq!(reg.f, 0b_0101_0000)
     }
 
     #[test]
     fn it_should_unset_carry() {
         let mut reg = Registers::new();
 
-        reg.f = 0b_0000_0101;
+        reg.f = 0b_0101_0000;
         reg.set_flag(Flags::CARRY, false);
 
-        assert_eq!(reg.f, 0b_0000_0100)
+        assert_eq!(reg.f, 0b_0100_0000)
     }
 
     #[test]
     fn it_should_return_zero_flag_is_set() {
         let mut reg = Registers::new();
 
-        reg.f = 0b_0000_1001;
+        reg.f = 0b_1001_0000;
         let res = reg.is_flag(Flags::ZERO);
 
         assert!(res)
@@ -213,7 +213,7 @@ mod tests {
     fn it_should_return_a_format() {
         let mut reg = Registers::new();
 
-        reg.f = 0b_0000_1111;
+        reg.f = 0b_1111_0000;
         let str = format!("{}", reg);
 
         assert_eq!(
