@@ -1,6 +1,7 @@
 #![allow(unused_imports)]
 use crate::cpu::Cpu;
-use crate::registers::Addr;
+use crate::execute::Addr;
+use crate::registers::Reg16::{BC, DE, HL};
 use crate::registers::Reg8;
 use crate::registers::Reg8::{A, B, C, D, E, H, L};
 
@@ -46,6 +47,17 @@ impl Source8<Addr> for Cpu {
             Addr::BC => self.reg.bc(),
             Addr::DE => self.reg.de(),
             Addr::HL => self.reg.hl(),
+            Addr::HLI => {
+                let hl = self.reg.hl();
+                self.reg.set_hl(hl.wrapping_add(1));
+                hl
+            }
+            Addr::HLD => {
+                let hl = self.reg.hl();
+                self.reg.set_hl(hl.wrapping_sub(1));
+                hl
+            }
+            Addr::Imm8 => self.memory.fetch_next_word(),
         };
 
         self.memory.fetch_byte(addr)
@@ -53,11 +65,22 @@ impl Source8<Addr> for Cpu {
 }
 
 impl Target8<Addr> for Cpu {
-    fn write(&mut self, src: Addr, value: u8) {
-        let addr = match src {
+    fn write(&mut self, target: Addr, value: u8) {
+        let addr = match target {
             Addr::BC => self.reg.bc(),
             Addr::DE => self.reg.de(),
             Addr::HL => self.reg.hl(),
+            Addr::HLI => {
+                let hl = self.reg.hl();
+                self.reg.set_hl(hl.wrapping_add(1));
+                hl
+            }
+            Addr::HLD => {
+                let hl = self.reg.hl();
+                self.reg.set_hl(hl.wrapping_sub(1));
+                hl
+            }
+            Addr::Imm8 => self.memory.fetch_next_word(),
         };
 
         self.memory.write_byte(addr, value)

@@ -8,6 +8,24 @@ const N_FLAG: u8 = 0b_0000_0100;
 const HALF_CARRY: u8 = 0b_0000_0010;
 const CARRY: u8 = 0b_0000_0001;
 
+#[derive(Copy, Clone, Debug)]
+pub enum Reg8 {
+    A,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum Reg16 {
+    BC,
+    DE,
+    HL,
+}
+
 pub enum Flags {
     ZERO,
     N,
@@ -84,11 +102,11 @@ impl Registers {
     }
 }
 
-fn combine(high: u16, low: u16) -> u16 {
+pub fn combine(high: u16, low: u16) -> u16 {
     (high << 8) | low
 }
 
-fn split_u8(value: u16) -> (u8, u8) {
+pub fn split_u8(value: u16) -> (u8, u8) {
     let high = (value >> 8) & 0xFF;
     let low = value & 0xFF;
     (high as u8, low as u8)
@@ -135,34 +153,6 @@ impl fmt::Display for Registers {
             self.sp
         )
     }
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum Reg8 {
-    A,
-    B,
-    C,
-    D,
-    E,
-    H,
-    L,
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum Addr {
-    BC,
-    DE,
-    HL,
-}
-
-#[derive(Copy, Clone, Debug)]
-pub enum Imm8 {}
-
-#[derive(Copy, Clone, Debug)]
-pub enum Reg16 {
-    BC,
-    DE,
-    HL,
 }
 
 #[cfg(test)]

@@ -2,10 +2,10 @@
 #![allow(clippy::new_without_default)]
 
 use crate::debug_tools::handle_debug;
+use crate::execute::Addr;
+use crate::execute::Addr::{BC, DE, HL};
 use crate::memorybus::MemoryBus;
 use crate::read_write_cpu::{Source8, Target8};
-use crate::registers::Addr;
-use crate::registers::Addr::{BC, DE, HL};
 use crate::registers::Reg8;
 use crate::registers::Reg8::{A, B, C, D, E, H, L};
 use crate::registers::Registers;
@@ -46,8 +46,7 @@ mod tests {
     fn it_should_mov_c_to_b() {
         let mut cpu = Cpu::new();
         cpu.reg.c = 0xa;
-        let pc = cpu.memory.pc;
-        cpu.memory.write_byte(pc, 0x41);
+        set_instruction(0x41, &mut cpu);
 
         cpu.step();
 
@@ -61,11 +60,30 @@ mod tests {
 
         let loc = 0x10;
         cpu.reg.set_hl(loc);
-        let pc = cpu.memory.pc;
-        cpu.memory.write_byte(pc, 0x77);
+        set_instruction(0x77, &mut cpu);
 
         cpu.step();
 
         assert_eq!(cpu.memory.fetch_byte(loc), 0xa);
+    }
+
+    #[test]
+    fn it_should_ld_d8_in_b() {
+        let mut cpu = Cpu::new();
+        let loc = 0x11;
+        cpu.memory.write_byte(loc, 0xa);
+        cpu.memory.write_word(cpu.memory.pc + 1, loc);
+
+        set_instruction(0x06, &mut cpu);
+        cpu.reg.b = 0;
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.b, 0xa)
+    }
+
+    fn set_instruction(value: u8, cpu: &mut Cpu) {
+        let pc = cpu.memory.pc;
+        cpu.memory.write_byte(pc, value);
     }
 }
