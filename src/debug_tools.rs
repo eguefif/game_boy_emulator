@@ -17,27 +17,33 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
     match opcode {
         0x0 => String::from("nop"),
 
-        //******* Flow
+        //******* Flow control
         0x76 => String::from("halt"),
 
         //***** Load section
         //Ld sp
-        0x08 => format!("ld (&{:04x}), sp", imm16),
+        0x08 => format!("ld (${:04x}), sp", imm16),
         0xF8 => format!("ld hl, sp+#${:02x} ({})", imm8 as i8, imm8 as i8),
         0xF9 => String::from("ld sp, hl"),
+        //
+        // ld imm16
+        0x01 => format!("ld bc, ${:04x}", imm16),
+        0x11 => format!("ld de, ${:04x}", imm16),
+        0x21 => format!("ld hl, ${:04x}", imm16),
+        0x31 => format!("ld sp, ${:04x}", imm16),
 
         // Ld addr16
         0x02 => String::from("ld (bc), a"),
         0x12 => String::from("ld (de), a"),
         0x22 => String::from("ld (hl+), a"),
-        0x32 => String::from("ld ,(hl-), a"),
+        0x32 => String::from("ld (hl-), a"),
         0x0A => String::from("ld a, (bc)"),
         0x1A => String::from("ld a, (de)"),
         0x2A => String::from("ld a, (hl+)"),
         0x3A => String::from("ld a, (hl-)"),
 
         // Ld imm8
-        0x06 => format!("ld b, #${:2x}", imm8),
+        0x06 => format!("ld b, #${:02x}", imm8),
         0x16 => format!("ld d, #${:02x}", imm8),
         0x26 => format!("ld h, #${:02x}", imm8),
         0x36 => format!("ld (hl), #${:02x}", imm8),
@@ -55,12 +61,6 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         //Ld a16
         0xEA => format!("ld (${:04x}), a", imm16),
         0xFA => format!("ld a, (${:04x})", imm16),
-
-        // ld imm16
-        0x01 => format!("ld bc, ${:04x}", imm16),
-        0x11 => format!("ld de, ${:04x}", imm16),
-        0x21 => format!("ld hl, ${:04x}", imm16),
-        0x31 => format!("ld sp, ${:04x}", imm16),
 
         // Ld regular
         0x40 => String::from("ld b, b"),
@@ -80,7 +80,7 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x4e => String::from("ld c, (hl)"),
         0x4f => String::from("ld c, a"),
 
-        0x50 => String::from("ld b, b"),
+        0x50 => String::from("ld d, b"),
         0x51 => String::from("ld d, c"),
         0x52 => String::from("ld d, d"),
         0x53 => String::from("ld d, e"),

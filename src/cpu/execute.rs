@@ -23,6 +23,7 @@ impl Cpu {
         match opcode {
             0x0 => {}
 
+            //******* Flow control
             0x76 => self.halt(),
 
             //***** Load section
@@ -76,7 +77,7 @@ impl Cpu {
             0x45 => self.load(B, L),
             0x46 => self.load(B, Addr::HL),
             0x47 => self.load(B, A),
-            0x48 => self.load(B, B),
+            0x48 => self.load(C, B),
             0x49 => self.load(C, C),
             0x4a => self.load(C, D),
             0x4b => self.load(C, E),
@@ -85,12 +86,12 @@ impl Cpu {
             0x4e => self.load(C, Addr::HL),
             0x4f => self.load(C, A),
 
-            0x50 => self.load(D, A),
-            0x51 => self.load(D, A),
-            0x52 => self.load(D, A),
-            0x53 => self.load(D, A),
-            0x54 => self.load(D, A),
-            0x55 => self.load(D, A),
+            0x50 => self.load(D, B),
+            0x51 => self.load(D, C),
+            0x52 => self.load(D, D),
+            0x53 => self.load(D, E),
+            0x54 => self.load(D, H),
+            0x55 => self.load(D, L),
             0x56 => self.load(D, Addr::HL),
             0x57 => self.load(D, A),
             0x58 => self.load(E, B),

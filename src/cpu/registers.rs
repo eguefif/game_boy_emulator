@@ -112,12 +112,12 @@ impl Registers {
     }
 }
 
-pub fn test_half_carry(value: u8, addend: u8) -> bool {
+pub fn test_half_carry_8(value: u8, addend: u8) -> bool {
     let mask = 0b_0000_1111;
     (value & mask) + (addend & mask) > mask
 }
 
-pub fn test_carry(value: u8, addend: u8) -> bool {
+pub fn test_carry_8(value: u8, addend: u8) -> bool {
     let (_, overflow) = value.overflowing_add(addend);
     overflow
 }
@@ -236,37 +236,37 @@ mod tests {
     }
 
     #[test]
-    fn it_should_test_half_carry_true() {
+    fn it_should_test_half_carry_8_true() {
         let value = 0xF;
         let addend = 1;
-        let test = test_half_carry(value, addend);
+        let test = test_half_carry_8(value, addend);
 
         assert!(test);
     }
 
     #[test]
-    fn it_should_test_carry_true() {
+    fn it_should_test_carry_8_true() {
         let value = 0xFF;
         let addend = 1;
-        let test = test_carry(value, addend);
+        let test = test_carry_8(value, addend);
 
         assert!(test);
     }
 
     #[test]
-    fn it_should_test_half_carry_false() {
+    fn it_should_test_half_carry_8_false() {
         let value = 0xF;
         let addend = 1;
-        let test = test_half_carry(value, addend);
+        let test = test_half_carry_8(value, addend);
 
         assert!(test);
     }
 
     #[test]
-    fn it_should_test_carry_false() {
+    fn it_should_test_carry_8_false() {
         let value = 0xFF;
         let addend = 1;
-        let test = test_carry(value, addend);
+        let test = test_carry_8(value, addend);
 
         assert!(test);
     }

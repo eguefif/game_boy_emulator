@@ -2,13 +2,15 @@ use crate::cpu::read_write_cpu::{Source8, Target16, Target8};
 use crate::cpu::registers::Flags::{CARRY, HALF, N, ZERO};
 use crate::cpu::Cpu;
 
-use super::registers::{test_carry, test_half_carry};
+use super::registers::{test_carry_8, test_half_carry_8};
 
 impl Cpu {
     pub fn load_imm16_sp(&mut self) {
         let low = self.reg.sp as u8;
+        let high = (self.reg.sp >> 8) as u8;
         let loc = self.memory.fetch_next_word();
         self.memory.write_byte(loc, low);
+        self.memory.write_byte(loc.wrapping_add(1), high);
     }
 
     pub fn load_hl_sp_imm8(&mut self) {
@@ -16,13 +18,14 @@ impl Cpu {
         let sp = self.reg.sp;
         let result = sp.wrapping_add(addend as i16 as u16);
         self.reg.set_hl(result);
+        self.memory.tick();
+
         self.reg.set_flag(ZERO, false);
         self.reg.set_flag(N, false);
-        let carry = test_carry(sp as u8, addend as u8);
-        let half_carry = test_half_carry(sp as u8, addend as u8);
+        let carry = test_carry_8(sp as u8, addend as u8);
+        let half_carry = test_half_carry_8(sp as u8, addend as u8);
         self.reg.set_flag(CARRY, carry);
         self.reg.set_flag(HALF, half_carry);
-        self.memory.tick();
     }
 
     pub fn load_sp_hl(&mut self) {
@@ -118,6 +121,7 @@ mod tests {
         cpu.step();
 
         assert_eq!(cpu.memory.fetch_byte(loc), 0xCD);
+        assert_eq!(cpu.memory.fetch_byte(loc.wrapping_add(1)), 0xAB);
     }
 
     #[test]
