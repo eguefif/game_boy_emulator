@@ -10,6 +10,7 @@ use crate::debug_tools::handle_debug;
 use crate::memorybus::MemoryBus;
 
 pub mod execute;
+pub mod flow;
 pub mod ld;
 pub mod read_write_cpu;
 pub mod registers;
@@ -17,6 +18,7 @@ pub mod registers;
 pub struct Cpu {
     pub reg: Registers,
     pub memory: MemoryBus,
+    halted: bool,
 }
 
 impl Cpu {
@@ -24,12 +26,15 @@ impl Cpu {
         Cpu {
             reg: Registers::new(),
             memory: MemoryBus::new(),
+            halted: false,
         }
     }
 
     pub fn step(&mut self) {
-        let opcode = self.memory.fetch_next_byte();
-        handle_debug(opcode, self);
-        self.execute(opcode);
+        if !self.halted {
+            let opcode = self.memory.fetch_next_byte();
+            handle_debug(opcode, self);
+            self.execute(opcode);
+        }
     }
 }

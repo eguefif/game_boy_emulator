@@ -96,13 +96,14 @@ impl Registers {
 
     pub fn set_flag(&mut self, flag: Flags, value: bool) {
         match flag {
-            Flags::ZERO => self.make_set_flag(ZERO, value),
-            Flags::N => self.make_set_flag(N_FLAG, value),
-            Flags::CARRY => self.make_set_flag(CARRY, value),
-            Flags::HALF => self.make_set_flag(HALF_CARRY, value),
+            Flags::ZERO => self.set_flag_value(ZERO, value),
+            Flags::N => self.set_flag_value(N_FLAG, value),
+            Flags::CARRY => self.set_flag_value(CARRY, value),
+            Flags::HALF => self.set_flag_value(HALF_CARRY, value),
         }
     }
-    fn make_set_flag(&mut self, set: u8, value: bool) {
+
+    fn set_flag_value(&mut self, set: u8, value: bool) {
         if value {
             self.f |= set;
         } else {
@@ -232,5 +233,41 @@ mod tests {
             str,
             " flags: ---- | a: $01 | bc: $ff13 | de: $00c1 | hl: $8403 | sp: $fffe |"
         )
+    }
+
+    #[test]
+    fn it_should_test_half_carry_true() {
+        let value = 0xF;
+        let addend = 1;
+        let test = test_half_carry(value, addend);
+
+        assert!(test);
+    }
+
+    #[test]
+    fn it_should_test_carry_true() {
+        let value = 0xFF;
+        let addend = 1;
+        let test = test_carry(value, addend);
+
+        assert!(test);
+    }
+
+    #[test]
+    fn it_should_test_half_carry_false() {
+        let value = 0xF;
+        let addend = 1;
+        let test = test_half_carry(value, addend);
+
+        assert!(test);
+    }
+
+    #[test]
+    fn it_should_test_carry_false() {
+        let value = 0xFF;
+        let addend = 1;
+        let test = test_carry(value, addend);
+
+        assert!(test);
     }
 }

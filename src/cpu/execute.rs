@@ -23,12 +23,21 @@ impl Cpu {
         match opcode {
             0x0 => {}
 
+            0x76 => self.halt(),
+
+            //***** Load section
             // Load sp
             0x08 => self.load_imm16_sp(),
             0xF8 => self.load_hl_sp_imm8(),
             0xF9 => self.load_sp_hl(),
+            //
+            // ld imm16
+            0x01 => self.load16_imm(BC),
+            0x11 => self.load16_imm(DE),
+            0x21 => self.load16_imm(HL),
+            0x31 => self.load16_imm(SP),
 
-            // Load addr
+            // Load addr16
             0x02 => self.load(Addr::BC, A),
             0x12 => self.load(Addr::DE, A),
             0x22 => self.load(Addr::HLI, A),
@@ -54,15 +63,9 @@ impl Cpu {
             0xE2 => self.load(Addr::ZeroPageC, A),
             0xF2 => self.load(A, Addr::ZeroPageC),
 
-            //Ld addr a16
+            //Ld a16
             0xEA => self.load(Addr::Imm16, A),
             0xFA => self.load(A, Addr::Imm16),
-            //
-            // ld imm16
-            0x01 => self.load16_imm(BC),
-            0x11 => self.load16_imm(DE),
-            0x21 => self.load16_imm(HL),
-            0x31 => self.load16_imm(SP),
 
             //Ld regular
             0x40 => self.load(B, B),
@@ -122,7 +125,6 @@ impl Cpu {
             0x73 => self.load(Addr::HL, E),
             0x74 => self.load(Addr::HL, H),
             0x75 => self.load(Addr::HL, L),
-            0x76 => panic!("to do halt"),
             0x77 => self.load(Addr::HL, A),
             0x78 => self.load(A, B),
             0x79 => self.load(A, C),

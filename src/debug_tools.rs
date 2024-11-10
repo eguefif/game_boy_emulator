@@ -17,6 +17,10 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
     match opcode {
         0x0 => String::from("nop"),
 
+        //******* Flow
+        0x76 => String::from("halt"),
+
+        //***** Load section
         //Ld sp
         0x08 => format!("ld (&{:04x}), sp", imm16),
         0xF8 => format!("ld hl, sp+#${:02x} ({})", imm8 as i8, imm8 as i8),
@@ -48,6 +52,7 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0xE2 => format!("ld (${:02x}), a", combine(0xFF, cpu.reg.c as u16)),
         0xF2 => format!("ld a, (${:02x})", combine(0xFF, cpu.reg.c as u16)),
 
+        //Ld a16
         0xEA => format!("ld (${:04x}), a", imm16),
         0xFA => format!("ld a, (${:04x})", imm16),
 
@@ -57,6 +62,7 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x21 => format!("ld hl, ${:04x}", imm16),
         0x31 => format!("ld sp, ${:04x}", imm16),
 
+        // Ld regular
         0x40 => String::from("ld b, b"),
         0x41 => String::from("ld b, c"),
         0x42 => String::from("ld b, d"),
@@ -114,7 +120,6 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x73 => String::from("ld (hl), e"),
         0x74 => String::from("ld (hl), h"),
         0x75 => String::from("ld (hl), l"),
-        0x76 => String::from("halt"),
         0x77 => String::from("ld (hl), a"),
         0x78 => String::from("ld a, b"),
         0x79 => String::from("ld a, c"),
