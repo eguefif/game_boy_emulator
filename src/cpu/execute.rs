@@ -24,6 +24,7 @@ impl Cpu {
             0x0 => {}
             //******* Arithmetic Logic Unit (ALU)
             0xE8 => self.add_sp_s8(),
+            0x27 => self.daa(),
 
             0x09 => self.add16(HL, BC),
             0x19 => self.add16(HL, DE),
@@ -127,6 +128,9 @@ impl Cpu {
 
             //******* Flow control
             0x76 => self.halt(),
+            0x37 => self.scf(),
+            0x2F => self.cpl(),
+            0x3F => self.ccf(),
 
             //***** Load section
             // Load sp

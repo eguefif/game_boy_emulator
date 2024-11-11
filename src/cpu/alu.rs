@@ -8,6 +8,24 @@ use crate::cpu::registers::test_carry_8;
 use super::registers::test_half_carry_8;
 
 impl Cpu {
+    pub fn daa(&mut self) {
+        let a = self.reg.a;
+        let mut adjust = 0;
+        let sub = self.reg.is_flag(N);
+
+        if (!sub && a & 0xF > 0x9) || self.reg.is_flag(HALF) {
+            adjust |= 0x06;
+        }
+        if (!sub && a > 0x99) || self.reg.is_flag(CARRY) {
+            adjust |= 0x60;
+        }
+        if sub {
+            self.reg.a = a.wrapping_sub(adjust);
+        } else {
+            self.reg.a = a.wrapping_add(adjust);
+        }
+    }
+
     pub fn add16<T: Copy>(&mut self, target: T, source: T)
     where
         Self: Target16<T> + Source16<T>,
@@ -603,6 +621,36 @@ mod tests {
         cpu.step();
 
         assert_eq!(cpu.reg.a, 0xa + 0x5);
+    }
+
+    #[test]
+    fn it_should_daa_with_add_adjust_tens_and_units() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0x27, &mut cpu);
+        cpu.reg.a = 0x58 + 0x63;
+
+        cpu.step();
+        assert_eq!(cpu.reg.a, 0x21);
+    }
+
+    #[test]
+    fn it_should_daa_with_add_adjust_tens() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0x27, &mut cpu);
+        cpu.reg.a = 0x88 + 0x21;
+
+        cpu.step();
+        assert_eq!(cpu.reg.a, 0x9);
+    }
+
+    #[test]
+    fn it_should_daa_with_add_adjust_units() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0x27, &mut cpu);
+        cpu.reg.a = 0x58 + 0x24;
+
+        cpu.step();
+        assert_eq!(cpu.reg.a, 0x82);
     }
 
     fn set_first_instruction(value: u8, cpu: &mut Cpu) {

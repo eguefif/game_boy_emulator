@@ -19,6 +19,7 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
 
         //******* Arithmetic Logic Unit (ALU)
         0xE8 => format!("add sp, #${:02x}", imm8),
+        0x27 => String::from("daa"),
 
         0x09 => String::from("add hl, bc"),
         0x19 => String::from("add hl, de"),
@@ -122,6 +123,9 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
 
         //******* Flow control
         0x76 => String::from("halt"),
+        0x37 => String::from("scf"),
+        0x2F => String::from("cpl"),
+        0x3F => String::from("ccf"),
 
         //***** Load section
         //Ld sp
