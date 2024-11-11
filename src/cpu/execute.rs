@@ -1,5 +1,5 @@
 #![allow(unused_imports)]
-use crate::cpu::registers::Reg16::{BC, DE, HL, SP};
+use crate::cpu::registers::Reg16::{AF, BC, DE, HL, SP};
 use crate::cpu::registers::Reg8::{A, B, C, D, E, H, L};
 use crate::cpu::Cpu;
 
@@ -152,6 +152,15 @@ impl Cpu {
             0xBF => self.cp(A),
 
             //******* Flow control
+            0xC1 => self.pop(BC),
+            0xD1 => self.pop(DE),
+            0xE1 => self.pop(HL),
+            0xF1 => self.pop(AF),
+            0xC5 => self.push(BC),
+            0xD5 => self.push(DE),
+            0xE5 => self.push(HL),
+            0xF5 => self.push(HL),
+
             0x76 => self.halt(),
             0x37 => self.scf(),
             0x2F => self.cpl(),

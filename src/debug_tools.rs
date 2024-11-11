@@ -131,6 +131,14 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0xBF => String::from("cp a, a"),
 
         //******* Flow control
+        0xC1 => String::from("pop bc"),
+        0xD1 => String::from("pop de"),
+        0xE1 => String::from("pop hl"),
+        0xF1 => String::from("pop af"),
+        0xC5 => String::from("push bc"),
+        0xD5 => String::from("push de"),
+        0xE5 => String::from("push hl"),
+        0xF5 => String::from("push af"),
         0x76 => String::from("halt"),
         0x37 => String::from("scf"),
         0x2F => String::from("cpl"),

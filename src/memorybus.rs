@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 #![allow(clippy::new_without_default)]
 
-use crate::cpu::registers::{combine, split_u8};
+use crate::cpu::registers::{combine, split_u16};
 use std::{env, fs::File, io::Read};
 
 const ROM_B1_END: u16 = 0x3FFF;
@@ -106,7 +106,7 @@ impl MemoryBus {
     }
 
     pub fn write_word(&mut self, at: u16, value: u16) {
-        let (high, low) = split_u8(value);
+        let (high, low) = split_u16(value);
         self.write_byte(at, low);
         self.write_byte(at.wrapping_add(1), high);
     }

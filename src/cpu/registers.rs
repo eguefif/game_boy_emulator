@@ -25,6 +25,7 @@ pub enum Reg16 {
     DE,
     HL,
     SP,
+    AF,
 }
 
 pub enum Flags {
@@ -61,6 +62,20 @@ impl Registers {
         }
     }
 
+    pub fn inc_sp(&mut self) {
+        let sp = self.sp;
+        self.sp = sp.wrapping_add(1);
+    }
+
+    pub fn dec_sp(&mut self) {
+        let sp = self.sp;
+        self.sp = sp.wrapping_sub(1);
+    }
+
+    pub fn af(&mut self) -> u16 {
+        combine(self.a as u16, self.f as u16)
+    }
+
     pub fn hl(&mut self) -> u16 {
         combine(self.h as u16, self.l as u16)
     }
@@ -74,15 +89,19 @@ impl Registers {
     }
 
     pub fn set_bc(&mut self, value: u16) {
-        (self.b, self.c) = split_u8(value);
+        (self.b, self.c) = split_u16(value);
     }
 
     pub fn set_de(&mut self, value: u16) {
-        (self.d, self.e) = split_u8(value)
+        (self.d, self.e) = split_u16(value)
     }
 
     pub fn set_hl(&mut self, value: u16) {
-        (self.h, self.l) = split_u8(value);
+        (self.h, self.l) = split_u16(value);
+    }
+
+    pub fn set_af(&mut self, value: u16) {
+        (self.a, self.f) = split_u16(value);
     }
 
     pub fn is_flag(&mut self, flag: Flags) -> bool {
@@ -125,7 +144,7 @@ pub fn combine(high: u16, low: u16) -> u16 {
     (high << 8) | low
 }
 
-pub fn split_u8(value: u16) -> (u8, u8) {
+pub fn split_u16(value: u16) -> (u8, u8) {
     let high = (value >> 8) & 0xFF;
     let low = value & 0xFF;
     (high as u8, low as u8)

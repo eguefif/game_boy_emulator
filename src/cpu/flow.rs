@@ -1,9 +1,44 @@
 use crate::cpu::registers::Flags::{CARRY, HALF, N, ZERO};
+use crate::cpu::registers::Reg16;
+use crate::cpu::registers::Reg16::{AF, BC, DE, HL, SP};
 use crate::cpu::Cpu;
 
 use crate::cpu::execute::{JpAddr, JpCondition};
 
+use crate::cpu::registers::{combine, split_u16};
+
 impl Cpu {
+    pub fn pop(&mut self, target: Reg16) {
+        let lo = self.memory.fetch_byte(self.reg.sp);
+        self.reg.inc_sp();
+        let hi = self.memory.fetch_byte(self.reg.sp);
+        self.reg.inc_sp();
+        let value = combine(hi as u16, lo as u16);
+        match target {
+            AF => self.reg.set_af(value),
+            BC => self.reg.set_bc(value),
+            HL => self.reg.set_hl(value),
+            DE => self.reg.set_de(value),
+            SP => {}
+        }
+    }
+
+    pub fn push(&mut self, target: Reg16) {
+        let value = match target {
+            AF => self.reg.af(),
+            BC => self.reg.bc(),
+            HL => self.reg.hl(),
+            DE => self.reg.de(),
+            SP => 0,
+        };
+        let (hi, lo) = split_u16(value);
+        self.memory.tick();
+        self.reg.dec_sp();
+        self.memory.write_byte(self.reg.sp, lo);
+        self.reg.dec_sp();
+        self.memory.write_byte(self.reg.sp, hi);
+    }
+
     pub fn halt(&mut self) {
         self.halted = true;
     }

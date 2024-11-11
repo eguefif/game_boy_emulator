@@ -1,7 +1,7 @@
 #![allow(unused_imports)]
 use crate::cpu::execute::{Addr, Imm8};
 use crate::cpu::registers::Reg16;
-use crate::cpu::registers::Reg16::{BC, DE, HL, SP};
+use crate::cpu::registers::Reg16::{AF, BC, DE, HL, SP};
 use crate::cpu::registers::Reg8::{A, B, C, D, E, H, L};
 use crate::cpu::registers::{combine, Reg8};
 use crate::cpu::Cpu;
@@ -29,6 +29,7 @@ impl Target16<Reg16> for Cpu {
             DE => self.reg.set_de(value),
             HL => self.reg.set_hl(value),
             SP => self.reg.sp = value,
+            AF => {}
         }
     }
 }
@@ -40,6 +41,7 @@ impl Source16<Reg16> for Cpu {
             DE => self.reg.de(),
             HL => self.reg.hl(),
             SP => self.reg.sp,
+            AF => 0,
         }
     }
 }
