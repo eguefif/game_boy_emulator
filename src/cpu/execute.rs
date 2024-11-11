@@ -31,6 +31,15 @@ impl Cpu {
             0x29 => self.add16(HL, HL),
             0x39 => self.add16(HL, SP),
 
+            0x03 => self.inc16(BC),
+            0x13 => self.inc16(DE),
+            0x23 => self.inc16(HL),
+            0x33 => self.inc16(SP),
+            0x0B => self.inc16(BC),
+            0x1B => self.inc16(DE),
+            0x2B => self.inc16(HL),
+            0x3B => self.inc16(SP),
+
             0x04 => self.inc(B),
             0x14 => self.inc(D),
             0x24 => self.inc(H),

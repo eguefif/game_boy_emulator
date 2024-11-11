@@ -37,7 +37,7 @@ impl Cpu {
 
         self.reg.set_flag(N, false);
         self.reg
-            .set_flag(HALF, ((value & 0xFF) + (addend & 0xFF)) > 0xFF);
+            .set_flag(HALF, ((value & 0xFFF) + (addend & 0xFFF)) > 0xFFF);
         self.reg.set_flag(
             CARRY,
             ((value as u32 & 0xFFFF) + (addend as u32 & 0xFFFF)) > 0xFFFF,
@@ -52,6 +52,7 @@ impl Cpu {
         let value = self.read16(target);
         let res = value.wrapping_sub(1);
         self.write16(target, res);
+        self.memory.tick();
     }
 
     pub fn inc16<T: Copy>(&mut self, target: T)
@@ -61,6 +62,7 @@ impl Cpu {
         let value = self.read16(target);
         let res = value.wrapping_add(1);
         self.write16(target, res);
+        self.memory.tick();
     }
 
     pub fn dec<T: Copy>(&mut self, target: T)
@@ -73,7 +75,7 @@ impl Cpu {
 
         self.reg.set_flag(ZERO, res == 0);
         self.reg.set_flag(N, true);
-        self.reg.set_flag(HALF, (value & 0xF) < 1);
+        self.reg.set_flag(HALF, value & 0xF == 0);
     }
 
     pub fn inc<T: Copy>(&mut self, target: T)
@@ -86,15 +88,19 @@ impl Cpu {
 
         self.reg.set_flag(ZERO, res == 0);
         self.reg.set_flag(N, false);
-        self.reg.set_flag(HALF, test_half_carry_8(value, 1, 0));
+        self.reg.set_flag(HALF, value & 0xF == 0xF);
     }
 
     pub fn add_sp_s8(&mut self) {
         let value = self.memory.fetch_next_byte() as i8;
         let sp = self.reg.sp;
+
         self.reg.sp = sp.wrapping_add(value as u8 as u16);
-        let carry = ((sp as u32 & 0xFFFF) + (value as u8 as u32 & 0xFFFF)) > 0xFFFF;
-        let half = ((sp & 0xFF) + (value as u8 as u16 & 0xFF)) > 0xFF;
+        self.memory.tick();
+        self.memory.tick();
+
+        let carry = ((sp & 0x00FF) + (value as u8 as u16 & 0x00FF)) > 0x00FF;
+        let half = ((sp & 0xF) + (value as u8 as u16 & 0xF)) > 0xF;
         self.reg.set_flag(ZERO, false);
         self.reg.set_flag(N, false);
         self.reg.set_flag(HALF, half);
@@ -227,14 +233,14 @@ mod tests {
     fn it_should_add_hl_with_bc_with_half_carry() {
         let mut cpu = Cpu::new();
         set_first_instruction(0x09, &mut cpu);
-        cpu.reg.set_hl(0xFF);
+        cpu.reg.set_hl(0xFFF);
         cpu.reg.set_bc(0x1);
         cpu.reg.f = 0;
 
         cpu.step();
 
         assert!(cpu.reg.is_flag(HALF));
-        assert_eq!(cpu.reg.hl(), 0x100);
+        assert_eq!(cpu.reg.hl(), 0x1000);
     }
 
     #[test]
