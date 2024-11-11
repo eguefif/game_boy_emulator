@@ -152,6 +152,18 @@ impl Cpu {
             0xBF => self.cp(A),
 
             //******* Flow control
+            0xC4 => self.call(JpCondition::NZ),
+            0xD4 => self.call(JpCondition::NC),
+            0xCC => self.call(JpCondition::Z),
+            0xDC => self.call(JpCondition::C),
+            0xCD => self.call(JpCondition::None),
+
+            0xC0 => self.ret(JpCondition::NZ),
+            0xD0 => self.ret(JpCondition::NC),
+            0xC8 => self.ret(JpCondition::Z),
+            0xD8 => self.ret(JpCondition::C),
+            0xC9 => self.ret(JpCondition::None),
+            0xD9 => self.reti(),
             0xC1 => self.pop(BC),
             0xD1 => self.pop(DE),
             0xE1 => self.pop(HL),

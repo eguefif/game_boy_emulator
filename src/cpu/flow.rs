@@ -8,6 +8,10 @@ use crate::cpu::execute::{JpAddr, JpCondition};
 use crate::cpu::registers::{combine, split_u16};
 
 impl Cpu {
+    pub fn ret(&mut self, condition: JpCondition) {}
+    pub fn reti(&mut self) {}
+    pub fn call(&mut self, condition: JpCondition) {}
+
     pub fn pop(&mut self, target: Reg16) {
         let lo = self.memory.fetch_byte(self.reg.sp);
         self.reg.inc_sp();

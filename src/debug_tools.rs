@@ -131,6 +131,18 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0xBF => String::from("cp a, a"),
 
         //******* Flow control
+        0xC4 => format!("call nz, (${:02x})", imm16),
+        0xD4 => format!("call nc, (${:02x})", imm16),
+        0xCC => format!("call z, (${:02x})", imm16),
+        0xDC => format!("call c, (${:02x})", imm16),
+        0xCD => format!("call (${:02x})", imm16),
+        0xC0 => format!("ret nz, (${:02x})", imm16),
+        0xD0 => format!("ret nc, (${:02x})", imm16),
+        0xC8 => format!("ret z, (${:02x})", imm16),
+        0xD8 => format!("ret c, (${:02x})", imm16),
+        0xC9 => format!("ret (${:02x})", imm16),
+        0xD9 => String::from("reti"),
+
         0xC1 => String::from("pop bc"),
         0xD1 => String::from("pop de"),
         0xE1 => String::from("pop hl"),
@@ -139,6 +151,7 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0xD5 => String::from("push de"),
         0xE5 => String::from("push hl"),
         0xF5 => String::from("push af"),
+
         0x76 => String::from("halt"),
         0x37 => String::from("scf"),
         0x2F => String::from("cpl"),
