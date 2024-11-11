@@ -22,16 +22,12 @@ cargo run -- YOUR ROM
 
 ## Authors
 
-Contributors names and contact info
-
-ex. Emmanuel Guefif
+Emmanuel Guefif
 
 ## Version History
 
 - 0.1
-  - Implements basic loop
-  - Loads
-  - Regular alu opcodes
+  - CPU
 
 ## License
 

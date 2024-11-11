@@ -136,6 +136,19 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x2F => String::from("cpl"),
         0x3F => String::from("ccf"),
 
+        0x20 => format!("jr nz, #${:02x} ({})", imm8, imm8 as i8),
+        0x30 => format!("jr nc, #${:02x} ({})", imm8, imm8 as i8),
+        0x18 => format!("jr #${:02x} ({})", imm8, imm8 as i8),
+        0x28 => format!("jr z, #${:02x} ({})", imm8, imm8 as i8),
+        0x38 => format!("jr c, #${:02x} ({})", imm8, imm8 as i8),
+
+        0xC2 => format!("jp ({:04x})", imm16),
+        0xD2 => format!("jp ({:04x})", imm16),
+        0xC3 => format!("jp ({:04x})", imm16),
+        0xCA => format!("jp ({:04x})", imm16),
+        0xDA => format!("jp ({:04x})", imm16),
+        0xE9 => String::from("jp hl"),
+
         //***** Load section
         //Ld sp
         0x08 => format!("ld (${:04x}), sp", imm16),

@@ -16,6 +16,22 @@ pub enum Addr {
 }
 
 #[derive(Copy, Clone, Debug)]
+pub enum JpAddr {
+    S8,
+    A16,
+    HL,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub enum JpCondition {
+    NZ,
+    NC,
+    Z,
+    C,
+    None,
+}
+
+#[derive(Copy, Clone, Debug)]
 pub struct Imm8;
 
 impl Cpu {
@@ -140,6 +156,19 @@ impl Cpu {
             0x37 => self.scf(),
             0x2F => self.cpl(),
             0x3F => self.ccf(),
+
+            0x20 => self.jump(JpCondition::NZ, JpAddr::S8),
+            0x30 => self.jump(JpCondition::NC, JpAddr::S8),
+            0x18 => self.jump(JpCondition::None, JpAddr::S8),
+            0x28 => self.jump(JpCondition::Z, JpAddr::S8),
+            0x38 => self.jump(JpCondition::C, JpAddr::S8),
+
+            0xC2 => self.jump(JpCondition::NZ, JpAddr::A16),
+            0xD2 => self.jump(JpCondition::NC, JpAddr::A16),
+            0xC3 => self.jump(JpCondition::None, JpAddr::A16),
+            0xCA => self.jump(JpCondition::Z, JpAddr::A16),
+            0xDA => self.jump(JpCondition::C, JpAddr::A16),
+            0xE9 => self.jump(JpCondition::None, JpAddr::HL),
 
             //***** Load section
             // Load sp

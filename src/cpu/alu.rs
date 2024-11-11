@@ -95,12 +95,12 @@ impl Cpu {
         let value = self.memory.fetch_next_byte() as i8;
         let sp = self.reg.sp;
 
-        self.reg.sp = sp.wrapping_add(value as u8 as u16);
+        self.reg.sp = sp.wrapping_add(value as i16 as u16);
         self.memory.tick();
         self.memory.tick();
 
-        let carry = ((sp & 0x00FF) + (value as u8 as u16 & 0x00FF)) > 0x00FF;
-        let half = ((sp & 0xF) + (value as u8 as u16 & 0xF)) > 0xF;
+        let carry = ((sp & 0x00FF) + (value as i16 as u16 & 0x00FF)) > 0x00FF;
+        let half = ((sp & 0xF) + (value as i16 as u16 & 0xF)) > 0xF;
         self.reg.set_flag(ZERO, false);
         self.reg.set_flag(N, false);
         self.reg.set_flag(HALF, half);
@@ -317,7 +317,7 @@ mod tests {
 
         cpu.step();
 
-        assert_eq!(cpu.reg.sp, 0xaa + value as u8 as u16);
+        assert_eq!(cpu.reg.sp, 0xaa - 5);
     }
 
     #[test]
