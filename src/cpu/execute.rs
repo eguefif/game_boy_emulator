@@ -40,8 +40,9 @@ impl Cpu {
             0x0 => {}
             0x10 => {} // Stop is not implemented
             0xCB => self.execute_cb(),
+            0x76 => self.halt(),
 
-            //******* forbiden opcode
+            //******* Forbiden opcode
             0xD3 | 0xE3 | 0xE4 | 0xF4 | 0xDB | 0xEB | 0xEC | 0xFC | 0xDD | 0xED | 0xFD => {
                 panic!("Forbiden opcode {:02x}", opcode)
             }
@@ -49,6 +50,7 @@ impl Cpu {
             //******* Interruption
             0xF3 => panic!("Todo: 0xF4 DI"),
             0xFB => panic!("Todo: 0xFB EI"),
+            //
             //******* Bit operations
             0x07 => self.rlca(),
             0x17 => self.rla(),
@@ -58,6 +60,9 @@ impl Cpu {
             //******* Arithmetic Logic Unit (ALU)
             0xE8 => self.add_sp_s8(),
             0x27 => self.daa(),
+            0x37 => self.scf(),
+            0x2F => self.cpl(),
+            0x3F => self.ccf(),
 
             0x09 => self.add16(HL, BC),
             0x19 => self.add16(HL, DE),
@@ -213,17 +218,12 @@ impl Cpu {
             0xDA => self.jump(Condition::C, JpAddr::A16),
             0xE9 => self.jump(Condition::None, JpAddr::HL),
 
-            0x76 => self.halt(),
-            0x37 => self.scf(),
-            0x2F => self.cpl(),
-            0x3F => self.ccf(),
-
             //***** Load section
             // Load sp
             0x08 => self.load_imm16_sp(),
             0xF8 => self.load_hl_sp_imm8(),
             0xF9 => self.load_sp_hl(),
-            //
+
             // ld imm16
             0x01 => self.load16_imm(BC),
             0x11 => self.load16_imm(DE),
@@ -332,19 +332,18 @@ impl Cpu {
 
     fn execute_cb(&mut self) {
         let opcode = self.memory.fetch_next_byte();
-
         match opcode {
-            0x0..=0x7 => {}
-            0x8..=0xF => {}
-            0x10..=0x17 => {}
-            0x18..=0x1F => {}
+            0x0..=0x7 => self.rlc(opcode),
+            0x8..=0xF => self.rrc(opcode),
+            0x10..=0x17 => self.rl(opcode),
+            0x18..=0x1F => self.rr(opcode),
             0x20..=0x27 => {}
             0x28..=0x2F => {}
             0x30..=0x37 => {}
             0x38..=0x3F => {}
-            0x40..=0x7F => {}
-            0x80..=0xBF => {}
-            0xC0..=0xFF => {}
+            0x40..=0x7F => self.bit(opcode),
+            0x80..=0xBF => self.reset(opcode),
+            0xC0..=0xFF => self.set(opcode),
         }
     }
 }

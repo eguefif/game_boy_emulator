@@ -1,7 +1,11 @@
 use crate::{cpu::registers::combine, cpu::Cpu};
 
 pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
-    print!("${:<04x}: {:02x}    |", cpu.memory.pc - 1, opcode);
+    let mut opcode_display = opcode;
+    if opcode == 0xcb {
+        opcode_display = cpu.memory.read(cpu.memory.pc)
+    }
+    print!("${:<04x}: {:02x}    |", cpu.memory.pc - 1, opcode_display);
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{} |", cpu.reg);
     print!(" cycles: {}", cpu.memory.cycle);
@@ -297,38 +301,50 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
 }
 
 fn diassemble_cb(cpu: &mut Cpu) -> String {
-    let opcode = cpu.memory.read(cpu.memory.pc + 1);
+    let opcode = cpu.memory.read(cpu.memory.pc);
 
     match opcode {
-        0x0..=0x7 => format!("rlc {}", get_target(opcode)),
-        0x8..=0xF => format!("rrc {}", get_target(opcode)),
-        0x10..=0x17 => format!("rl {}", get_target(opcode)),
-        0x18..=0x1F => format!("rr {}", get_target(opcode)),
-        0x20..=0x27 => format!("sla {}", get_target(opcode)),
-        0x28..=0x2F => format!("sra {}", get_target(opcode)),
-        0x30..=0x37 => format!("swap {}", get_target(opcode)),
-        0x38..=0x3F => format!("srl {}", get_target(opcode)),
-        0x40..=0x7F => format!("bit {}, {}", get_value(opcode), get_target(opcode)),
-        0x80..=0xBF => format!("res {}, {}", get_value(opcode), get_target(opcode)),
-        0xC0..=0xFF => format!("set {}, {}", get_value(opcode), get_target(opcode)),
+        0x0..=0x7 => format!("rlc {}", get_target_debug(opcode)),
+        0x8..=0xF => format!("rrc {}", get_target_debug(opcode)),
+        0x10..=0x17 => format!("rl {}", get_target_debug(opcode)),
+        0x18..=0x1F => format!("rr {}", get_target_debug(opcode)),
+        0x20..=0x27 => format!("sla {}", get_target_debug(opcode)),
+        0x28..=0x2F => format!("sra {}", get_target_debug(opcode)),
+        0x30..=0x37 => format!("swap {}", get_target_debug(opcode)),
+        0x38..=0x3F => format!("srl {}", get_target_debug(opcode)),
+        0x40..=0x7F => format!(
+            "bit {}, {}",
+            get_value_debug(opcode),
+            get_target_debug(opcode)
+        ),
+        0x80..=0xBF => format!(
+            "res {}, {}",
+            get_value_debug(opcode),
+            get_target_debug(opcode)
+        ),
+        0xC0..=0xFF => format!(
+            "set {}, {}",
+            get_value_debug(opcode),
+            get_target_debug(opcode)
+        ),
     }
 }
 
-fn get_target(opcode: u8) -> String {
+fn get_target_debug(opcode: u8) -> String {
     match opcode & 0b_0000_0111 {
-        0b0000 => String::from("B"),
-        0b0001 => String::from("C"),
-        0b0010 => String::from("D"),
-        0b0011 => String::from("E"),
-        0b0100 => String::from("H"),
-        0b0101 => String::from("L"),
-        0b0110 => String::from("HL"),
-        0b0111 => String::from("A"),
+        0b0000 => String::from("b"),
+        0b0001 => String::from("c"),
+        0b0010 => String::from("d"),
+        0b0011 => String::from("e"),
+        0b0100 => String::from("h"),
+        0b0101 => String::from("l"),
+        0b0110 => String::from("hl"),
+        0b0111 => String::from("a"),
         _ => String::from("N"),
     }
 }
 
-fn get_value(opcode: u8) -> String {
+fn get_value_debug(opcode: u8) -> String {
     match (opcode >> 3) & 0b_0000_0111 {
         0b000 => String::from("0"),
         0b001 => String::from("1"),
