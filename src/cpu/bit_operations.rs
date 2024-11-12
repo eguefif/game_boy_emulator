@@ -4,6 +4,17 @@ use crate::cpu::Cpu;
 use crate::cpu::read_write_cpu::{Source8, Target8};
 
 impl Cpu {
+    pub fn swap(&mut self, opcode: u8) {
+        let mut value = self.get_target(opcode);
+        let lo = value & 0xF;
+        value >>= 4;
+        value |= lo << 4;
+        self.set_target(opcode, value);
+        self.reg.set_flag(ZERO, true);
+        self.reg.set_flag(CARRY, false);
+        self.reg.set_flag(HALF, false);
+        self.reg.set_flag(N, false);
+    }
     pub fn set(&mut self, opcode: u8) {
         let mut value = self.get_target(opcode);
         value |= 1 << (opcode >> 3 & 0b111);
@@ -22,6 +33,16 @@ impl Cpu {
         self.reg.set_flag(ZERO, result == 0);
         self.reg.set_flag(N, false);
         self.reg.set_flag(HALF, true);
+    }
+
+    pub fn srl(&mut self, opcode: u8) {
+        let mut value = self.get_target(opcode);
+        let carry = value & 0b_0000_0001;
+        let bit7 = value & 0b_1000_0000;
+        value >>= 1;
+        value |= bit7;
+        self.set_target(opcode, value);
+        self.set_rotation_flags(carry);
     }
 
     pub fn sra(&mut self, opcode: u8) {
@@ -165,6 +186,36 @@ impl Cpu {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn it_should_swap() {
+        let mut cpu = Cpu::new();
+        cpu.reg.a = 0b_1001_0110;
+        cpu.reg.set_flag(ZERO, false);
+        let pc = cpu.memory.pc;
+        cpu.memory.write_byte(pc, 0xCB);
+        cpu.memory.write_byte(pc + 1, 0x37);
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.a, 0b_0110_1001);
+        assert!(cpu.reg.is_flag(ZERO));
+    }
+
+    #[test]
+    fn it_should_srl() {
+        let mut cpu = Cpu::new();
+        cpu.reg.e = 0b_1001_1001;
+        cpu.reg.set_flag(ZERO, false);
+        let pc = cpu.memory.pc;
+        cpu.memory.write_byte(pc, 0xCB);
+        cpu.memory.write_byte(pc + 1, 0x3B);
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.e, 0b_1100_1100);
+        assert!(cpu.reg.is_flag(CARRY));
+    }
 
     #[test]
     fn it_should_sra() {

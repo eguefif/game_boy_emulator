@@ -339,8 +339,8 @@ impl Cpu {
             0x18..=0x1F => self.rr(opcode),
             0x20..=0x27 => self.sla(opcode),
             0x28..=0x2F => self.sra(opcode),
-            0x30..=0x37 => {}
-            0x38..=0x3F => {}
+            0x30..=0x37 => self.swap(opcode),
+            0x38..=0x3F => self.srl(opcode),
             0x40..=0x7F => self.bit(opcode),
             0x80..=0xBF => self.reset(opcode),
             0xC0..=0xFF => self.set(opcode),
