@@ -38,6 +38,17 @@ impl Cpu {
     pub fn execute(&mut self, opcode: u8) {
         match opcode {
             0x0 => {}
+            0x10 => {} // Stop is not implemented
+            0xCB => self.execute_cb(),
+
+            //******* forbiden opcode
+            0xD3 | 0xE3 | 0xE4 | 0xF4 | 0xDB | 0xEB | 0xEC | 0xFC | 0xDD | 0xED | 0xFD => {
+                panic!("Forbiden opcode {:02x}", opcode)
+            }
+
+            //******* Interruption
+            0xF3 => panic!("Todo: 0xF4 DI"),
+            0xFB => panic!("Todo: 0xFB EI"),
             //******* Bit operations
             0x07 => self.rlca(),
             0x17 => self.rla(),
@@ -316,10 +327,24 @@ impl Cpu {
             0x7d => self.load(A, L),
             0x7e => self.load(A, Addr::HL),
             0x7f => self.load(A, A),
+        }
+    }
 
-            _ => {
-                panic!("Opcode unknown: {}", opcode);
-            }
+    fn execute_cb(&mut self) {
+        let opcode = self.memory.fetch_next_byte();
+
+        match opcode {
+            0x0..=0x7 => {}
+            0x8..=0xF => {}
+            0x10..=0x17 => {}
+            0x18..=0x1F => {}
+            0x20..=0x27 => {}
+            0x28..=0x2F => {}
+            0x30..=0x37 => {}
+            0x38..=0x3F => {}
+            0x40..=0x7F => {}
+            0x80..=0xBF => {}
+            0xC0..=0xFF => {}
         }
     }
 }

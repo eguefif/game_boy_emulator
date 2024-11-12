@@ -301,7 +301,16 @@ fn diassemble_cb(cpu: &mut Cpu) -> String {
 
     match opcode {
         0x0..=0x7 => format!("rlc {}", get_target(opcode)),
-        _ => String::from("unknown opcode"),
+        0x8..=0xF => format!("rrc {}", get_target(opcode)),
+        0x10..=0x17 => format!("rl {}", get_target(opcode)),
+        0x18..=0x1F => format!("rr {}", get_target(opcode)),
+        0x20..=0x27 => format!("sla {}", get_target(opcode)),
+        0x28..=0x2F => format!("sra {}", get_target(opcode)),
+        0x30..=0x37 => format!("swap {}", get_target(opcode)),
+        0x38..=0x3F => format!("srl {}", get_target(opcode)),
+        0x40..=0x7F => format!("bit {}, {}", get_value(opcode), get_target(opcode)),
+        0x80..=0xBF => format!("res {}, {}", get_value(opcode), get_target(opcode)),
+        0xC0..=0xFF => format!("set {}, {}", get_value(opcode), get_target(opcode)),
     }
 }
 
@@ -315,6 +324,20 @@ fn get_target(opcode: u8) -> String {
         0b0101 => String::from("L"),
         0b0110 => String::from("HL"),
         0b0111 => String::from("A"),
+        _ => String::from("N"),
+    }
+}
+
+fn get_value(opcode: u8) -> String {
+    match (opcode >> 3) & 0b_0000_0111 {
+        0b000 => String::from("0"),
+        0b001 => String::from("1"),
+        0b010 => String::from("2"),
+        0b011 => String::from("3"),
+        0b100 => String::from("4"),
+        0b101 => String::from("5"),
+        0b110 => String::from("6"),
+        0b111 => String::from("7"),
         _ => String::from("N"),
     }
 }
