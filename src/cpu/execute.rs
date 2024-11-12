@@ -152,6 +152,14 @@ impl Cpu {
             0xBF => self.cp(A),
 
             //******* Flow control
+            0xC7 => self.rst(0),
+            0xD7 => self.rst(0x10),
+            0xE7 => self.rst(0x20),
+            0xF7 => self.rst(0x30),
+            0xCF => self.rst(0x8),
+            0xDF => self.rst(0x18),
+            0xEF => self.rst(0x28),
+            0xFF => self.rst(0x38),
             0xC4 => self.call(Condition::NZ),
             0xD4 => self.call(Condition::NC),
             0xCC => self.call(Condition::Z),

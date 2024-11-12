@@ -8,6 +8,13 @@ use crate::cpu::execute::{Condition, JpAddr};
 use crate::cpu::registers::{combine, split_u16};
 
 impl Cpu {
+    pub fn rst(&mut self, value: u8) {
+        let pc = self.memory.pc;
+        self.make_push(pc);
+        self.memory.tick();
+        self.memory.pc = value as u16;
+    }
+
     pub fn call(&mut self, condition: Condition) {
         let addr = self.memory.fetch_next_word();
         if self.should_jump(condition) {
