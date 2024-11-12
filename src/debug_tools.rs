@@ -16,7 +16,8 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
     let imm16 = combine(high as u16, low as u16);
     match opcode {
         0x0 => String::from("nop"),
-        //
+        0xCB => diassemble_cb(cpu),
+
         //******* Bit operations
         0x07 => String::from("rlca"),
         0x17 => String::from("rla"),
@@ -292,5 +293,28 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x7f => String::from("ld a, a"),
 
         _ => String::from("unknown opcode"),
+    }
+}
+
+fn diassemble_cb(cpu: &mut Cpu) -> String {
+    let opcode = cpu.memory.read(cpu.memory.pc + 1);
+
+    match opcode {
+        0x0..=0x7 => format!("rlc {}", get_target(opcode)),
+        _ => String::from("unknown opcode"),
+    }
+}
+
+fn get_target(opcode: u8) -> String {
+    match opcode & 0b_0000_0111 {
+        0b0000 => String::from("B"),
+        0b0001 => String::from("C"),
+        0b0010 => String::from("D"),
+        0b0011 => String::from("E"),
+        0b0100 => String::from("H"),
+        0b0101 => String::from("L"),
+        0b0110 => String::from("HL"),
+        0b0111 => String::from("A"),
+        _ => String::from("N"),
     }
 }
