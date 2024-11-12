@@ -24,6 +24,21 @@ impl Cpu {
         self.reg.set_flag(HALF, true);
     }
 
+    pub fn sra(&mut self, opcode: u8) {
+        let mut value = self.get_target(opcode);
+        let carry = value & 0b_0000_0001;
+        value >>= 1;
+        self.set_target(opcode, value);
+        self.set_rotation_flags(carry);
+    }
+
+    pub fn sla(&mut self, opcode: u8) {
+        let mut value = self.get_target(opcode);
+        let carry = value >> 7 & 0b_0000_0001;
+        value <<= 1;
+        self.set_target(opcode, value);
+        self.set_rotation_flags(carry);
+    }
     // rlc and rlca
     pub fn rlc(&mut self, opcode: u8) {
         let mut value = self.get_target(opcode);
@@ -150,6 +165,36 @@ impl Cpu {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn it_should_sra() {
+        let mut cpu = Cpu::new();
+        cpu.reg.h = 0b_1001_1001;
+        cpu.reg.set_flag(ZERO, false);
+        let pc = cpu.memory.pc;
+        cpu.memory.write_byte(pc, 0xCB);
+        cpu.memory.write_byte(pc + 1, 0x2C);
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.h, 0b_0100_1100);
+        assert!(cpu.reg.is_flag(CARRY));
+    }
+
+    #[test]
+    fn it_should_sla() {
+        let mut cpu = Cpu::new();
+        cpu.reg.l = 0b_1001_1011;
+        cpu.reg.set_flag(ZERO, false);
+        let pc = cpu.memory.pc;
+        cpu.memory.write_byte(pc, 0xCB);
+        cpu.memory.write_byte(pc + 1, 0x25);
+
+        cpu.step();
+
+        assert_eq!(cpu.reg.l, 0b_0011_0110);
+        assert!(cpu.reg.is_flag(CARRY));
+    }
 
     #[test]
     fn it_should_bit_0_c() {
