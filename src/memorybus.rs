@@ -19,6 +19,14 @@ const HRAM_START: u16 = 0xFF80;
 const HRAM_END: u16 = 0xFFFE;
 const HRAM_SIZE: u16 = HRAM_END - HRAM_START + 1;
 
+const WRAM_START: u16 = 0xC000;
+const WRAM_END: u16 = 0xCFFF;
+const WRAM_SIZE: u16 = WRAM_END - WRAM_START + 1;
+
+const W2RAM_START: u16 = 0xD000;
+const W2RAM_END: u16 = 0xDFFF;
+const W2RAM_SIZE: u16 = W2RAM_END - W2RAM_START + 1;
+
 const TOTAL_ROM_SIZE: u16 = ROM_B2_SIZE + ROM_B1_SIZE + 1;
 const MEM_MAX: u16 = 0xFFFF;
 
@@ -28,6 +36,8 @@ pub struct MemoryBus {
     rom: [u8; TOTAL_ROM_SIZE as usize],
     io_reg: [u8; IOREG_SIZE as usize],
     hram: [u8; HRAM_SIZE as usize],
+    wram: [u8; WRAM_SIZE as usize],
+    w2ram: [u8; W2RAM_SIZE as usize],
     ie: u8,
     pub pc: u16,
     pub cycle: u128,
@@ -39,6 +49,8 @@ impl MemoryBus {
             rom: get_rom(),
             io_reg: [0; IOREG_SIZE as usize],
             hram: [0; HRAM_SIZE as usize],
+            wram: [0; WRAM_SIZE as usize],
+            w2ram: [0; W2RAM_SIZE as usize],
             pc: 0x100,
             ie: 0,
             cycle: 0,
@@ -52,23 +64,27 @@ impl MemoryBus {
             0..=ROM_B2_END => self.rom[loc as usize],
             IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize],
             HRAM_START..=HRAM_END => self.hram[(loc - HRAM_START) as usize],
+            WRAM_START..=WRAM_END => self.wram[(loc - WRAM_START) as usize],
+            W2RAM_START..=W2RAM_END => self.w2ram[(loc - W2RAM_START) as usize],
             INTERRUPT_EI => self.ie,
             _ => {
-                println!("Read: memory not handled: {}", loc);
+                println!("Read: memory not handled: {:x}", loc);
                 0
             }
         }
     }
 
-    fn write(&mut self, at: u16, value: u8) {
+    pub fn write(&mut self, at: u16, value: u8) {
         let loc = at & MEM_MAX;
 
         match loc {
             0..=ROM_B2_END => self.rom[loc as usize] = value,
             IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize] = value,
             HRAM_START..=HRAM_END => self.hram[(loc - HRAM_START) as usize] = value,
+            WRAM_START..=WRAM_END => self.wram[(loc - WRAM_START) as usize] = value,
+            W2RAM_START..=W2RAM_END => self.w2ram[(loc - W2RAM_START) as usize] = value,
             INTERRUPT_EI => self.ie = value,
-            _ => println!("Write: memory not handled: {}", loc),
+            _ => println!("Write: memory not handled: {:x}", loc),
         }
     }
 

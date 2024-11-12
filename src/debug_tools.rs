@@ -1,6 +1,45 @@
+use std::io::stdin;
+
 use crate::{cpu::registers::combine, cpu::Cpu};
 
+const TEST_ROM: bool = true;
+const DEBUG_STOP: bool = false;
+static mut TEST_ROM_MESSAGE: String = String::new();
+
 pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
+    display_opcode(opcode, cpu);
+    if TEST_ROM {
+        handle_test_rom(cpu);
+    }
+    if DEBUG_STOP {
+        let mut input = String::new();
+        stdin().read_line(&mut input).unwrap();
+    }
+}
+
+fn handle_test_rom(cpu: &mut Cpu) {
+    update_testrom_message(cpu);
+    print_testrom_message();
+}
+fn update_testrom_message(cpu: &mut Cpu) {
+    if cpu.memory.read(0xFF02) == 0x81 {
+        println!("debug");
+        let c = cpu.memory.read(0xFF01);
+        unsafe {
+            TEST_ROM_MESSAGE.push(c as char);
+        }
+        cpu.memory.write(0xFF02, 0);
+    }
+}
+fn print_testrom_message() {
+    unsafe {
+        if !TEST_ROM_MESSAGE.is_empty() {
+            println!("Rom result: {}", TEST_ROM_MESSAGE);
+        }
+    }
+}
+
+fn display_opcode(opcode: u8, cpu: &mut Cpu) {
     let mut opcode_display = opcode;
     if opcode == 0xcb {
         opcode_display = cpu.memory.read(cpu.memory.pc)
