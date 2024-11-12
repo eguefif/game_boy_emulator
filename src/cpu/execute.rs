@@ -23,7 +23,7 @@ pub enum JpAddr {
 }
 
 #[derive(Copy, Clone, Debug)]
-pub enum JpCondition {
+pub enum Condition {
     NZ,
     NC,
     Z,
@@ -152,18 +152,19 @@ impl Cpu {
             0xBF => self.cp(A),
 
             //******* Flow control
-            0xC4 => self.call(JpCondition::NZ),
-            0xD4 => self.call(JpCondition::NC),
-            0xCC => self.call(JpCondition::Z),
-            0xDC => self.call(JpCondition::C),
-            0xCD => self.call(JpCondition::None),
+            0xC4 => self.call(Condition::NZ),
+            0xD4 => self.call(Condition::NC),
+            0xCC => self.call(Condition::Z),
+            0xDC => self.call(Condition::C),
+            0xCD => self.call(Condition::None),
 
-            0xC0 => self.ret(JpCondition::NZ),
-            0xD0 => self.ret(JpCondition::NC),
-            0xC8 => self.ret(JpCondition::Z),
-            0xD8 => self.ret(JpCondition::C),
-            0xC9 => self.ret(JpCondition::None),
+            0xC0 => self.ret(Condition::NZ),
+            0xD0 => self.ret(Condition::NC),
+            0xC8 => self.ret(Condition::Z),
+            0xD8 => self.ret(Condition::C),
+            0xC9 => self.ret(Condition::None),
             0xD9 => self.reti(),
+
             0xC1 => self.pop(BC),
             0xD1 => self.pop(DE),
             0xE1 => self.pop(HL),
@@ -171,25 +172,25 @@ impl Cpu {
             0xC5 => self.push(BC),
             0xD5 => self.push(DE),
             0xE5 => self.push(HL),
-            0xF5 => self.push(HL),
+            0xF5 => self.push(AF),
+
+            0x20 => self.jump(Condition::NZ, JpAddr::S8),
+            0x30 => self.jump(Condition::NC, JpAddr::S8),
+            0x18 => self.jump(Condition::None, JpAddr::S8),
+            0x28 => self.jump(Condition::Z, JpAddr::S8),
+            0x38 => self.jump(Condition::C, JpAddr::S8),
+
+            0xC2 => self.jump(Condition::NZ, JpAddr::A16),
+            0xD2 => self.jump(Condition::NC, JpAddr::A16),
+            0xC3 => self.jump(Condition::None, JpAddr::A16),
+            0xCA => self.jump(Condition::Z, JpAddr::A16),
+            0xDA => self.jump(Condition::C, JpAddr::A16),
+            0xE9 => self.jump(Condition::None, JpAddr::HL),
 
             0x76 => self.halt(),
             0x37 => self.scf(),
             0x2F => self.cpl(),
             0x3F => self.ccf(),
-
-            0x20 => self.jump(JpCondition::NZ, JpAddr::S8),
-            0x30 => self.jump(JpCondition::NC, JpAddr::S8),
-            0x18 => self.jump(JpCondition::None, JpAddr::S8),
-            0x28 => self.jump(JpCondition::Z, JpAddr::S8),
-            0x38 => self.jump(JpCondition::C, JpAddr::S8),
-
-            0xC2 => self.jump(JpCondition::NZ, JpAddr::A16),
-            0xD2 => self.jump(JpCondition::NC, JpAddr::A16),
-            0xC3 => self.jump(JpCondition::None, JpAddr::A16),
-            0xCA => self.jump(JpCondition::Z, JpAddr::A16),
-            0xDA => self.jump(JpCondition::C, JpAddr::A16),
-            0xE9 => self.jump(JpCondition::None, JpAddr::HL),
 
             //***** Load section
             // Load sp

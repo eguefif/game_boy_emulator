@@ -3,21 +3,39 @@ use crate::cpu::registers::Reg16;
 use crate::cpu::registers::Reg16::{AF, BC, DE, HL, SP};
 use crate::cpu::Cpu;
 
-use crate::cpu::execute::{JpAddr, JpCondition};
+use crate::cpu::execute::{Condition, JpAddr};
 
 use crate::cpu::registers::{combine, split_u16};
 
 impl Cpu {
-    pub fn ret(&mut self, condition: JpCondition) {}
-    pub fn reti(&mut self) {}
-    pub fn call(&mut self, condition: JpCondition) {}
+    pub fn ret(&mut self, condition: Condition) {
+        if self.should_jump(condition) {
+            self.make_ret();
+        }
+    }
+
+    fn make_ret(&mut self) {
+        self.memory.pc = self.make_pop();
+    }
+    pub fn reti(&mut self) {
+        panic!("Not imlemented yet: reti");
+    }
+
+    pub fn call(&mut self, condition: Condition) {
+        let addr = self.memory.fetch_next_word();
+        if self.should_jump(condition) {
+            self.make_call(addr);
+        }
+    }
+
+    fn make_call(&mut self, addr: u16) {
+        let pc = self.memory.pc;
+        self.make_push(pc);
+        self.move_pc_to_addr(addr);
+    }
 
     pub fn pop(&mut self, target: Reg16) {
-        let lo = self.memory.fetch_byte(self.reg.sp);
-        self.reg.inc_sp();
-        let hi = self.memory.fetch_byte(self.reg.sp);
-        self.reg.inc_sp();
-        let value = combine(hi as u16, lo as u16);
+        let value = self.make_pop();
         match target {
             AF => self.reg.set_af(value),
             BC => self.reg.set_bc(value),
@@ -25,6 +43,14 @@ impl Cpu {
             DE => self.reg.set_de(value),
             SP => {}
         }
+    }
+
+    fn make_pop(&mut self) -> u16 {
+        let lo = self.memory.fetch_byte(self.reg.sp);
+        self.reg.inc_sp();
+        let hi = self.memory.fetch_byte(self.reg.sp);
+        self.reg.inc_sp();
+        combine(hi as u16, lo as u16)
     }
 
     pub fn push(&mut self, target: Reg16) {
@@ -35,6 +61,10 @@ impl Cpu {
             DE => self.reg.de(),
             SP => 0,
         };
+        self.make_push(value);
+    }
+
+    fn make_push(&mut self, value: u16) {
         let (hi, lo) = split_u16(value);
         self.memory.tick();
         self.reg.dec_sp();
@@ -61,7 +91,7 @@ impl Cpu {
         self.reg.set_flag(CARRY, carry);
     }
 
-    pub fn jump(&mut self, condition: JpCondition, addr: JpAddr) {
+    pub fn jump(&mut self, condition: Condition, addr: JpAddr) {
         let addr = match addr {
             JpAddr::HL => self.reg.hl(),
             JpAddr::S8 => {
@@ -71,37 +101,28 @@ impl Cpu {
             }
             JpAddr::A16 => self.memory.fetch_next_word(),
         };
-
-        match condition {
-            JpCondition::NZ => {
-                if !self.reg.is_flag(ZERO) {
-                    self.memory.pc = addr;
-                    self.memory.tick();
-                }
-            }
-            JpCondition::NC => {
-                if !self.reg.is_flag(CARRY) {
-                    self.memory.pc = addr;
-                    self.memory.tick();
-                }
-            }
-            JpCondition::Z => {
-                if self.reg.is_flag(ZERO) {
-                    self.memory.pc = addr;
-                    self.memory.tick();
-                }
-            }
-            JpCondition::C => {
-                if self.reg.is_flag(CARRY) {
-                    self.memory.pc = addr;
-                    self.memory.tick();
-                }
-            }
-            JpCondition::None => {
-                self.memory.pc = addr;
-                self.memory.tick();
-            }
+        if self.should_jump(condition) {
+            self.move_pc_to_addr(addr);
         }
+    }
+
+    fn should_jump(&mut self, condition: Condition) -> bool {
+        match condition {
+            Condition::NZ if !self.reg.is_flag(ZERO) => true,
+            Condition::NZ => false,
+            Condition::NC if !self.reg.is_flag(CARRY) => true,
+            Condition::NC => false,
+            Condition::Z if self.reg.is_flag(ZERO) => true,
+            Condition::Z => false,
+            Condition::C if self.reg.is_flag(CARRY) => true,
+            Condition::C => false,
+            Condition::None => true,
+        }
+    }
+
+    fn move_pc_to_addr(&mut self, addr: u16) {
+        self.memory.pc = addr;
+        self.memory.tick();
     }
 }
 
