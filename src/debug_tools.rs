@@ -16,6 +16,12 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
     let imm16 = combine(high as u16, low as u16);
     match opcode {
         0x0 => String::from("nop"),
+        //
+        //******* Bit operations
+        0x07 => String::from("rlca"),
+        0x17 => String::from("rla"),
+        0x0F => String::from("rrca"),
+        0x1F => String::from("rra"),
 
         //******* Arithmetic Logic Unit (ALU)
         0xE8 => format!("add sp, #${:02x} ({})", imm8, imm8 as i8),

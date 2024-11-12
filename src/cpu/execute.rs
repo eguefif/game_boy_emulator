@@ -38,6 +38,12 @@ impl Cpu {
     pub fn execute(&mut self, opcode: u8) {
         match opcode {
             0x0 => {}
+            //******* Bit operations
+            0x07 => self.rlca(),
+            0x17 => self.rla(),
+            0x0F => self.rrca(),
+            0x1F => self.rra(),
+
             //******* Arithmetic Logic Unit (ALU)
             0xE8 => self.add_sp_s8(),
             0x27 => self.daa(),
