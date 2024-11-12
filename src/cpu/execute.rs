@@ -22,7 +22,7 @@ pub enum JpAddr {
     HL,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Condition {
     NZ,
     NC,
@@ -169,6 +169,7 @@ impl Cpu {
             0xD1 => self.pop(DE),
             0xE1 => self.pop(HL),
             0xF1 => self.pop(AF),
+
             0xC5 => self.push(BC),
             0xD5 => self.push(DE),
             0xE5 => self.push(HL),

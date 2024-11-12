@@ -8,19 +8,6 @@ use crate::cpu::execute::{Condition, JpAddr};
 use crate::cpu::registers::{combine, split_u16};
 
 impl Cpu {
-    pub fn ret(&mut self, condition: Condition) {
-        if self.should_jump(condition) {
-            self.make_ret();
-        }
-    }
-
-    fn make_ret(&mut self) {
-        self.memory.pc = self.make_pop();
-    }
-    pub fn reti(&mut self) {
-        panic!("Not imlemented yet: reti");
-    }
-
     pub fn call(&mut self, condition: Condition) {
         let addr = self.memory.fetch_next_word();
         if self.should_jump(condition) {
@@ -31,7 +18,25 @@ impl Cpu {
     fn make_call(&mut self, addr: u16) {
         let pc = self.memory.pc;
         self.make_push(pc);
-        self.move_pc_to_addr(addr);
+        self.jump_to_addr(addr);
+    }
+
+    pub fn ret(&mut self, condition: Condition) {
+        if condition != Condition::None {
+            self.memory.tick()
+        }
+        if self.should_jump(condition) {
+            self.make_ret();
+        }
+    }
+
+    fn make_ret(&mut self) {
+        let addr = self.make_pop();
+        self.jump_to_addr(addr);
+    }
+
+    pub fn reti(&mut self) {
+        panic!("Not imlemented yet: reti");
     }
 
     pub fn pop(&mut self, target: Reg16) {
@@ -102,7 +107,7 @@ impl Cpu {
             JpAddr::A16 => self.memory.fetch_next_word(),
         };
         if self.should_jump(condition) {
-            self.move_pc_to_addr(addr);
+            self.jump_to_addr(addr);
         }
     }
 
@@ -120,7 +125,7 @@ impl Cpu {
         }
     }
 
-    fn move_pc_to_addr(&mut self, addr: u16) {
+    fn jump_to_addr(&mut self, addr: u16) {
         self.memory.pc = addr;
         self.memory.tick();
     }

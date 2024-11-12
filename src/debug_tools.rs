@@ -136,17 +136,19 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0xCC => format!("call z, (${:02x})", imm16),
         0xDC => format!("call c, (${:02x})", imm16),
         0xCD => format!("call (${:02x})", imm16),
-        0xC0 => format!("ret nz, (${:02x})", imm16),
-        0xD0 => format!("ret nc, (${:02x})", imm16),
-        0xC8 => format!("ret z, (${:02x})", imm16),
-        0xD8 => format!("ret c, (${:02x})", imm16),
-        0xC9 => format!("ret (${:02x})", imm16),
+
+        0xC0 => String::from("ret nz"),
+        0xD0 => String::from("ret nc"),
+        0xC8 => String::from("ret z"),
+        0xD8 => String::from("ret c"),
+        0xC9 => String::from("ret"),
         0xD9 => String::from("reti"),
 
         0xC1 => String::from("pop bc"),
         0xD1 => String::from("pop de"),
         0xE1 => String::from("pop hl"),
         0xF1 => String::from("pop af"),
+
         0xC5 => String::from("push bc"),
         0xD5 => String::from("push de"),
         0xE5 => String::from("push hl"),
@@ -163,11 +165,11 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x28 => format!("jr z, #${:02x} ({})", imm8, imm8 as i8),
         0x38 => format!("jr c, #${:02x} ({})", imm8, imm8 as i8),
 
-        0xC2 => format!("jp ({:04x})", imm16),
-        0xD2 => format!("jp ({:04x})", imm16),
+        0xC2 => format!("jp nz, ({:04x} ({})", imm16, imm16 as i8),
+        0xD2 => format!("jp nc, ({:04x} ({})", imm16, imm16 as i8),
         0xC3 => format!("jp ({:04x})", imm16),
-        0xCA => format!("jp ({:04x})", imm16),
-        0xDA => format!("jp ({:04x})", imm16),
+        0xCA => format!("jp z, ({:04x}) ({})", imm16, imm16 as i8),
+        0xDA => format!("jp c, ({:04x}) ({})", imm16, imm16 as i8),
         0xE9 => String::from("jp hl"),
 
         //***** Load section
