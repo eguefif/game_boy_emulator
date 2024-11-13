@@ -8,22 +8,46 @@ use crate::cpu::registers::test_carry_8;
 use super::registers::test_half_carry_8;
 
 impl Cpu {
+    pub fn scf(&mut self) {
+        self.reg.set_flag(CARRY, true);
+        self.reg.set_flag(HALF, false);
+        self.reg.set_flag(N, false);
+    }
+
+    pub fn cpl(&mut self) {
+        let a = self.reg.a;
+        self.reg.a = !a;
+        self.reg.set_flag(HALF, true);
+        self.reg.set_flag(N, true);
+    }
+
+    pub fn ccf(&mut self) {
+        let carry = self.reg.is_flag(CARRY);
+        self.reg.set_flag(CARRY, !carry);
+        self.reg.set_flag(HALF, false);
+        self.reg.set_flag(N, false);
+    }
     pub fn daa(&mut self) {
         let a = self.reg.a;
         let mut adjust = 0;
         let sub = self.reg.is_flag(N);
+        let mut should_carry = false;
 
         if (!sub && a & 0xF > 0x9) || self.reg.is_flag(HALF) {
             adjust |= 0x06;
         }
         if (!sub && a > 0x99) || self.reg.is_flag(CARRY) {
             adjust |= 0x60;
+            should_carry = true;
         }
         if sub {
             self.reg.a = a.wrapping_sub(adjust);
         } else {
             self.reg.a = a.wrapping_add(adjust);
         }
+        self.reg.set_flag(CARRY, should_carry);
+        self.reg.set_flag(ZERO, self.reg.a == 0);
+        self.reg.set_flag(HALF, false);
     }
 
     pub fn add16<T: Copy>(&mut self, target: T, source: T)
@@ -167,14 +191,15 @@ impl Cpu {
         Self: Source8<S>,
     {
         let subend = self.read(source);
-        self.reg.a = self.get_sub_result(subend, 1);
+        let carry = self.reg.is_flag(CARRY);
+        self.reg.a = self.get_sub_result(subend, carry as u8);
     }
 
     pub fn get_sub_result(&mut self, value: u8, carry: u8) -> u8 {
         let acc = self.reg.a;
         let res = acc.wrapping_sub(value).wrapping_sub(carry);
 
-        let carry_f = (acc as u16) < (value as u16 + carry as u16);
+        let carry_f = (acc as u16) < (value as u16) + (carry as u16);
         let half_f = (acc & 0x0F) < (value & 0x0F) + carry;
 
         self.reg.set_flag(ZERO, res == 0);

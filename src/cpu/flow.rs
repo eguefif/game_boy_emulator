@@ -51,7 +51,8 @@ impl Cpu {
     }
 
     pub fn reti(&mut self) {
-        panic!("Not imlemented yet: reti");
+        self.memory.set_ime(false);
+        self.make_ret();
     }
 
     pub fn pop(&mut self, target: Reg16) {
@@ -95,20 +96,6 @@ impl Cpu {
 
     pub fn halt(&mut self) {
         self.halted = true;
-    }
-
-    pub fn scf(&mut self) {
-        self.reg.set_flag(CARRY, true)
-    }
-
-    pub fn cpl(&mut self) {
-        let a = self.reg.a;
-        self.reg.a = !a;
-    }
-
-    pub fn ccf(&mut self) {
-        let carry = self.reg.is_flag(CARRY);
-        self.reg.set_flag(CARRY, carry);
     }
 
     pub fn jump(&mut self, condition: Condition, addr: JpAddr) {

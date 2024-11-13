@@ -5,12 +5,10 @@ use crate::cpu::read_write_cpu::{Source8, Target8};
 
 impl Cpu {
     pub fn swap(&mut self, opcode: u8) {
-        let mut value = self.get_target(opcode);
-        let lo = value & 0xF;
-        value >>= 4;
-        value |= lo << 4;
-        self.set_target(opcode, value);
-        self.reg.set_flag(ZERO, true);
+        let value = self.get_target(opcode);
+        let new_value = value.rotate_left(4);
+        self.set_target(opcode, new_value);
+        self.reg.set_flag(ZERO, new_value == 0);
         self.reg.set_flag(CARRY, false);
         self.reg.set_flag(HALF, false);
         self.reg.set_flag(N, false);
@@ -46,7 +44,8 @@ impl Cpu {
     pub fn sra(&mut self, opcode: u8) {
         let mut value = self.get_target(opcode);
         let carry = value & 0b_0000_0001;
-        value >>= 1;
+        let bit7 = value & 0b_1000_0000;
+        value = (value >> 1) | bit7;
         self.set_target(opcode, value);
         self.set_rotation_flags(carry, value);
     }
@@ -226,7 +225,7 @@ mod tests {
 
         cpu.step();
 
-        assert_eq!(cpu.reg.h, 0b_0100_1100);
+        assert_eq!(cpu.reg.h, 0b_1100_1100);
         assert!(cpu.reg.is_flag(CARRY));
     }
 
