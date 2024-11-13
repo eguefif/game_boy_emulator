@@ -1,6 +1,8 @@
 #![allow(unused_imports)]
 #![allow(clippy::new_without_default)]
 
+use registers::Reg16;
+
 use crate::cpu::execute::Addr;
 use crate::cpu::execute::Addr::{BC, DE, HL};
 use crate::cpu::registers::Reg8;
@@ -58,7 +60,11 @@ impl Cpu {
     }
 
     fn handle_interrupt(&mut self) {
+        self.memory.tick();
+        self.memory.tick();
         self.ime = false;
-        self.memory.interrupt.reset_if();
+        let interrupt_addr = self.memory.interrupt.reset_iflag();
+        self.push(Reg16::SP);
+        self.memory.pc = interrupt_addr;
     }
 }

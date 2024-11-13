@@ -195,8 +195,9 @@ mod tests {
 
         cpu.step();
 
+        println!("{:b}", cpu.reg.a);
         assert_eq!(cpu.reg.a, 0b_0110_1001);
-        assert!(cpu.reg.is_flag(ZERO));
+        assert!(!cpu.reg.is_flag(ZERO));
     }
 
     #[test]
