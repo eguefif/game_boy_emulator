@@ -8,6 +8,14 @@ use crate::cpu::execute::{Condition, JpAddr};
 use crate::cpu::registers::{combine, split_u16};
 
 impl Cpu {
+    pub fn di(&mut self) {
+        self.memory.set_ime(false);
+    }
+
+    pub fn ei(&mut self) {
+        self.memory.set_ime(false);
+    }
+
     pub fn rst(&mut self, value: u8) {
         let pc = self.memory.pc;
         self.make_push(pc);
@@ -49,7 +57,7 @@ impl Cpu {
     pub fn pop(&mut self, target: Reg16) {
         let value = self.make_pop();
         match target {
-            AF => self.reg.set_af(value),
+            AF => self.reg.set_af(value & 0b_1111_1111_1111_0000),
             BC => self.reg.set_bc(value),
             HL => self.reg.set_hl(value),
             DE => self.reg.set_de(value),
@@ -80,9 +88,9 @@ impl Cpu {
         let (hi, lo) = split_u16(value);
         self.memory.tick();
         self.reg.dec_sp();
-        self.memory.write_byte(self.reg.sp, lo);
-        self.reg.dec_sp();
         self.memory.write_byte(self.reg.sp, hi);
+        self.reg.dec_sp();
+        self.memory.write_byte(self.reg.sp, lo);
     }
 
     pub fn halt(&mut self) {
@@ -107,9 +115,9 @@ impl Cpu {
         let addr = match addr {
             JpAddr::HL => self.reg.hl(),
             JpAddr::S8 => {
-                let pc = self.memory.pc;
                 let offset = self.memory.fetch_next_byte() as i8;
-                pc.wrapping_add(offset as i16 as u16)
+                let pc = self.memory.pc;
+                pc.wrapping_add(offset as u16)
             }
             JpAddr::A16 => self.memory.fetch_next_word(),
         };
@@ -152,7 +160,7 @@ mod tests {
         cpu.reg.set_flag(CARRY, false);
 
         cpu.step();
-        assert_eq!(cpu.memory.pc, pc + 1 - 5)
+        assert_eq!(cpu.memory.pc, pc + 2 - 5)
     }
 
     #[test]
@@ -164,7 +172,7 @@ mod tests {
         cpu.reg.set_flag(CARRY, true);
 
         cpu.step();
-        assert_eq!(cpu.memory.pc, pc + 1 + 0x5)
+        assert_eq!(cpu.memory.pc, pc + 2 + 0x5)
     }
 
     #[test]

@@ -3,18 +3,32 @@ use std::io::stdin;
 use crate::{cpu::registers::combine, cpu::Cpu};
 
 const TEST_ROM: bool = true;
+const DEBUG_MODE: bool = false;
 const DEBUG_STOP: bool = false;
 static mut TEST_ROM_MESSAGE: String = String::new();
+static mut STOP_CYCLE: u128 = 0;
 
 pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
-    display_opcode(opcode, cpu);
     if TEST_ROM {
         handle_test_rom(cpu);
     }
-    if DEBUG_STOP {
+    if !DEBUG_MODE {
+        return;
+    }
+    display_opcode(opcode, cpu);
+    if DEBUG_STOP && should_stop(cpu.memory.cycle) {
         let mut input = String::new();
         stdin().read_line(&mut input).unwrap();
+        if !input.trim().is_empty() {
+            unsafe {
+                STOP_CYCLE = input.trim().parse().unwrap();
+            }
+        }
     }
+}
+
+fn should_stop(cycle: u128) -> bool {
+    unsafe { STOP_CYCLE < cycle }
 }
 
 fn handle_test_rom(cpu: &mut Cpu) {
@@ -23,7 +37,6 @@ fn handle_test_rom(cpu: &mut Cpu) {
 }
 fn update_testrom_message(cpu: &mut Cpu) {
     if cpu.memory.read(0xFF02) == 0x81 {
-        println!("debug");
         let c = cpu.memory.read(0xFF01);
         unsafe {
             TEST_ROM_MESSAGE.push(c as char);
@@ -31,23 +44,38 @@ fn update_testrom_message(cpu: &mut Cpu) {
         cpu.memory.write(0xFF02, 0);
     }
 }
+
 fn print_testrom_message() {
     unsafe {
-        if !TEST_ROM_MESSAGE.is_empty() {
+        if !TEST_ROM_MESSAGE.is_empty() && should_print() {
             println!("Rom result: {}", TEST_ROM_MESSAGE);
         }
+    }
+}
+
+fn should_print() -> bool {
+    unsafe {
+        if TEST_ROM_MESSAGE.find("Failed").is_some() {
+            return true;
+        }
+        if TEST_ROM_MESSAGE.find("Passed").is_some() {
+            return true;
+        }
+        false
     }
 }
 
 fn display_opcode(opcode: u8, cpu: &mut Cpu) {
     let mut opcode_display = opcode;
     if opcode == 0xcb {
-        opcode_display = cpu.memory.read(cpu.memory.pc)
+        opcode_display = cpu.memory.read(cpu.memory.pc);
+        print!("${:<04x}: cb {:02x} |", cpu.memory.pc - 1, opcode_display);
+    } else {
+        print!("${:<04x}: {:02x}    |", cpu.memory.pc - 1, opcode_display);
     }
-    print!("${:<04x}: {:02x}    |", cpu.memory.pc - 1, opcode_display);
     print!(" {:20} |", diassemble(opcode, cpu));
-    print!("{} |", cpu.reg);
-    print!(" cycles: {}", cpu.memory.cycle);
+    print!("{}", cpu.reg);
+    print!(" cycles: {}", cpu.memory.cycle - 1);
     println!();
 }
 
@@ -60,6 +88,8 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
     match opcode {
         0x0 => String::from("nop"),
         0xCB => diassemble_cb(cpu),
+        0xF3 => String::from("di"),
+        0xFB => String::from("ei"),
 
         //******* Bit operations
         0x07 => String::from("rlca"),
@@ -224,11 +254,11 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x28 => format!("jr z, #${:02x} ({})", imm8, imm8 as i8),
         0x38 => format!("jr c, #${:02x} ({})", imm8, imm8 as i8),
 
-        0xC2 => format!("jp nz, ({:04x} ({})", imm16, imm16 as i8),
-        0xD2 => format!("jp nc, ({:04x} ({})", imm16, imm16 as i8),
-        0xC3 => format!("jp ({:04x})", imm16),
-        0xCA => format!("jp z, ({:04x}) ({})", imm16, imm16 as i8),
-        0xDA => format!("jp c, ({:04x}) ({})", imm16, imm16 as i8),
+        0xC2 => format!("jp nz, (${:04x} ({})", imm16, imm16 as i8),
+        0xD2 => format!("jp nc, (${:04x} ({})", imm16, imm16 as i8),
+        0xC3 => format!("jp (${:04x})", imm16),
+        0xCA => format!("jp z, (${:04x}) ({})", imm16, imm16 as i8),
+        0xDA => format!("jp c, (${:04x}) ({})", imm16, imm16 as i8),
         0xE9 => String::from("jp hl"),
 
         //***** Load section

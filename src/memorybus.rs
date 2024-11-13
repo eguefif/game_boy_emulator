@@ -15,6 +15,14 @@ const IOREG_START: u16 = 0xFF00;
 const IOREG_END: u16 = 0xFF7F;
 const IOREG_SIZE: u16 = IOREG_END - IOREG_START + 1;
 
+const VRAM_START: u16 = 0x8000;
+const VRAM_END: u16 = 0x9FFF;
+const VRAM_SIZE: u16 = VRAM_END - VRAM_START + 1;
+
+const EXTRAM_START: u16 = 0xA000;
+const EXTRAM_END: u16 = 0xBFFF;
+const EXTRAM_SIZE: u16 = EXTRAM_END - EXTRAM_START + 1;
+
 const HRAM_START: u16 = 0xFF80;
 const HRAM_END: u16 = 0xFFFE;
 const HRAM_SIZE: u16 = HRAM_END - HRAM_START + 1;
@@ -27,17 +35,26 @@ const W2RAM_START: u16 = 0xD000;
 const W2RAM_END: u16 = 0xDFFF;
 const W2RAM_SIZE: u16 = W2RAM_END - W2RAM_START + 1;
 
+const ECHO_START: u16 = 0xE000;
+const ECHO_END: u16 = 0xFDFF;
+const ECHO_SIZE: u16 = ECHO_END - ECHO_START + 1;
+
+const RESCALE_MIRROR: u16 = WRAM_SIZE + W2RAM_SIZE;
+
 const TOTAL_ROM_SIZE: u16 = ROM_B2_SIZE + ROM_B1_SIZE + 1;
 const MEM_MAX: u16 = 0xFFFF;
 
-const INTERRUPT_EI: u16 = 0xFFFF;
+const IME: u16 = 0xFFFF;
 
 pub struct MemoryBus {
     rom: [u8; TOTAL_ROM_SIZE as usize],
     io_reg: [u8; IOREG_SIZE as usize],
+    vram: [u8; VRAM_SIZE as usize],
     hram: [u8; HRAM_SIZE as usize],
     wram: [u8; WRAM_SIZE as usize],
     w2ram: [u8; W2RAM_SIZE as usize],
+    echo: [u8; ECHO_SIZE as usize],
+    extram: [u8; EXTRAM_SIZE as usize],
     ie: u8,
     pub pc: u16,
     pub cycle: u128,
@@ -48,9 +65,12 @@ impl MemoryBus {
         MemoryBus {
             rom: get_rom(),
             io_reg: [0; IOREG_SIZE as usize],
+            vram: [0; VRAM_SIZE as usize],
             hram: [0; HRAM_SIZE as usize],
             wram: [0; WRAM_SIZE as usize],
             w2ram: [0; W2RAM_SIZE as usize],
+            echo: [0; ECHO_SIZE as usize],
+            extram: [0; EXTRAM_SIZE as usize],
             pc: 0x100,
             ie: 0,
             cycle: 0,
@@ -59,14 +79,22 @@ impl MemoryBus {
 
     pub fn read(&mut self, at: u16) -> u8 {
         let loc = at & MEM_MAX;
-
         match loc {
             0..=ROM_B2_END => self.rom[loc as usize],
             IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize],
+            EXTRAM_START..=EXTRAM_END => self.extram[(loc - EXTRAM_START) as usize],
+            VRAM_START..=VRAM_END => self.vram[(loc - VRAM_START) as usize],
             HRAM_START..=HRAM_END => self.hram[(loc - HRAM_START) as usize],
             WRAM_START..=WRAM_END => self.wram[(loc - WRAM_START) as usize],
             W2RAM_START..=W2RAM_END => self.w2ram[(loc - W2RAM_START) as usize],
-            INTERRUPT_EI => self.ie,
+            ECHO_START..=ECHO_END => match loc - RESCALE_MIRROR {
+                WRAM_START..=WRAM_END => self.wram[(loc - RESCALE_MIRROR - WRAM_START) as usize],
+                W2RAM_START..=W2RAM_END => {
+                    self.w2ram[(loc - RESCALE_MIRROR - W2RAM_START) as usize]
+                }
+                _ => 0,
+            },
+            IME => self.ie,
             _ => {
                 println!("Read: memory not handled: {:x}", loc);
                 0
@@ -79,11 +107,22 @@ impl MemoryBus {
 
         match loc {
             0..=ROM_B2_END => self.rom[loc as usize] = value,
+            EXTRAM_START..=EXTRAM_END => self.extram[(loc - EXTRAM_START) as usize] = value,
             IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize] = value,
+            VRAM_START..=VRAM_END => self.vram[(loc - VRAM_START) as usize] = value,
             HRAM_START..=HRAM_END => self.hram[(loc - HRAM_START) as usize] = value,
             WRAM_START..=WRAM_END => self.wram[(loc - WRAM_START) as usize] = value,
             W2RAM_START..=W2RAM_END => self.w2ram[(loc - W2RAM_START) as usize] = value,
-            INTERRUPT_EI => self.ie = value,
+            ECHO_START..=ECHO_END => match loc - RESCALE_MIRROR {
+                WRAM_START..=WRAM_END => {
+                    self.wram[(loc - RESCALE_MIRROR - WRAM_START) as usize] = value
+                }
+                W2RAM_START..=W2RAM_END => {
+                    self.w2ram[(loc - RESCALE_MIRROR - WRAM_START) as usize] = value
+                }
+                _ => {}
+            },
+            IME => self.ie = value,
             _ => println!("Write: memory not handled: {:x}", loc),
         }
     }
@@ -125,6 +164,10 @@ impl MemoryBus {
         let (high, low) = split_u16(value);
         self.write_byte(at, low);
         self.write_byte(at.wrapping_add(1), high);
+    }
+
+    pub fn set_ime(&mut self, value: bool) {
+        self.write(IME, value as u8);
     }
 }
 

@@ -38,11 +38,9 @@ impl Cpu {
     pub fn srl(&mut self, opcode: u8) {
         let mut value = self.get_target(opcode);
         let carry = value & 0b_0000_0001;
-        let bit7 = value & 0b_1000_0000;
         value >>= 1;
-        value |= bit7;
         self.set_target(opcode, value);
-        self.set_rotation_flags(carry);
+        self.set_rotation_flags(carry, value);
     }
 
     pub fn sra(&mut self, opcode: u8) {
@@ -50,7 +48,7 @@ impl Cpu {
         let carry = value & 0b_0000_0001;
         value >>= 1;
         self.set_target(opcode, value);
-        self.set_rotation_flags(carry);
+        self.set_rotation_flags(carry, value);
     }
 
     pub fn sla(&mut self, opcode: u8) {
@@ -58,7 +56,7 @@ impl Cpu {
         let carry = value >> 7 & 0b_0000_0001;
         value <<= 1;
         self.set_target(opcode, value);
-        self.set_rotation_flags(carry);
+        self.set_rotation_flags(carry, value);
     }
     // rlc and rlca
     pub fn rlc(&mut self, opcode: u8) {
@@ -71,7 +69,7 @@ impl Cpu {
         let carry = value >> 7 & 0b_0000_0001;
         let res = value.rotate_left(1);
 
-        self.set_rotation_flags(carry);
+        self.set_rotation_flags(carry, res);
         res
     }
 
@@ -91,7 +89,7 @@ impl Cpu {
     pub fn alu_rl(&mut self, value: u8) -> u8 {
         let carry = value >> 7 & 0b_0000_0001;
         let res = (value << 1) | self.reg.is_flag(CARRY) as u8;
-        self.set_rotation_flags(carry);
+        self.set_rotation_flags(carry, res);
         res
     }
 
@@ -111,7 +109,7 @@ impl Cpu {
     pub fn alu_rrc(&mut self, value: u8) -> u8 {
         let carry = value & 0b_0000_0001;
         let res = value.rotate_right(1);
-        self.set_rotation_flags(carry);
+        self.set_rotation_flags(carry, res);
         res
     }
 
@@ -131,7 +129,7 @@ impl Cpu {
     pub fn alu_rr(&mut self, value: u8) -> u8 {
         let carry = value & 0b_0000_0001;
         let res = (value >> 1) | ((self.reg.is_flag(CARRY) as u8) << 7);
-        self.set_rotation_flags(carry);
+        self.set_rotation_flags(carry, res);
         res
     }
 
@@ -141,8 +139,8 @@ impl Cpu {
         self.reg.set_flag(ZERO, false);
     }
 
-    fn set_rotation_flags(&mut self, value: u8) {
-        self.reg.set_flag(ZERO, true);
+    fn set_rotation_flags(&mut self, value: u8, res: u8) {
+        self.reg.set_flag(ZERO, res == 0);
         self.reg.set_flag(HALF, false);
         self.reg.set_flag(N, false);
         self.reg.set_flag(CARRY, value != 0);
@@ -213,7 +211,7 @@ mod tests {
 
         cpu.step();
 
-        assert_eq!(cpu.reg.e, 0b_1100_1100);
+        assert_eq!(cpu.reg.e, 0b_0100_1100);
         assert!(cpu.reg.is_flag(CARRY));
     }
 
@@ -341,7 +339,7 @@ mod tests {
 
         assert_eq!(cpu.reg.c, 0b1010_0101);
         assert!(cpu.reg.is_flag(CARRY));
-        assert!(cpu.reg.is_flag(ZERO));
+        assert!(!cpu.reg.is_flag(ZERO));
     }
 
     #[test]

@@ -29,7 +29,7 @@ impl Target16<Reg16> for Cpu {
             DE => self.reg.set_de(value),
             HL => self.reg.set_hl(value),
             SP => self.reg.sp = value,
-            AF => {}
+            AF => self.reg.set_af(value),
         }
     }
 }
@@ -41,7 +41,7 @@ impl Source16<Reg16> for Cpu {
             DE => self.reg.de(),
             HL => self.reg.hl(),
             SP => self.reg.sp,
-            AF => 0,
+            AF => self.reg.af(),
         }
     }
 }

@@ -48,8 +48,8 @@ impl Cpu {
             }
 
             //******* Interruption
-            0xF3 => panic!("Todo: 0xF4 DI"),
-            0xFB => panic!("Todo: 0xFB EI"),
+            0xF3 => self.di(),
+            0xFB => self.ei(),
             //
             //******* Bit operations
             0x07 => self.rlca(),
