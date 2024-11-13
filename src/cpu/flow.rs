@@ -9,11 +9,13 @@ use crate::cpu::registers::{combine, split_u16};
 
 impl Cpu {
     pub fn di(&mut self) {
-        self.memory.set_ime(false);
+        self.ime = false;
     }
 
     pub fn ei(&mut self) {
-        self.memory.set_ime(false);
+        if !self.ime {
+            self.prepare_ime = true;
+        }
     }
 
     pub fn rst(&mut self, value: u8) {
@@ -51,8 +53,8 @@ impl Cpu {
     }
 
     pub fn reti(&mut self) {
-        self.memory.set_ime(false);
         self.make_ret();
+        self.ime = true;
     }
 
     pub fn pop(&mut self, target: Reg16) {

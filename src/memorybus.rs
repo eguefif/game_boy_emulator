@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(clippy::new_without_default)]
 
+use crate::cpu::interrupt::Interrupt;
 use crate::cpu::registers::{combine, split_u16};
 use std::{env, fs::File, io::Read};
 
@@ -45,8 +46,10 @@ const TOTAL_ROM_SIZE: u16 = ROM_B2_SIZE + ROM_B1_SIZE + 1;
 const MEM_MAX: u16 = 0xFFFF;
 
 const IME: u16 = 0xFFFF;
+const IFLAG: u16 = 0xFF0F;
 
 pub struct MemoryBus {
+    pub interrupt: Interrupt,
     rom: [u8; TOTAL_ROM_SIZE as usize],
     io_reg: [u8; IOREG_SIZE as usize],
     vram: [u8; VRAM_SIZE as usize],
@@ -63,6 +66,7 @@ pub struct MemoryBus {
 impl MemoryBus {
     pub fn new() -> MemoryBus {
         MemoryBus {
+            interrupt: Interrupt::new(),
             rom: get_rom(),
             io_reg: [0; IOREG_SIZE as usize],
             vram: [0; VRAM_SIZE as usize],
@@ -80,6 +84,7 @@ impl MemoryBus {
     pub fn read(&mut self, at: u16) -> u8 {
         let loc = at & MEM_MAX;
         match loc {
+            IFLAG => self.interrupt.ie,
             0..=ROM_B2_END => self.rom[loc as usize],
             IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize],
             EXTRAM_START..=EXTRAM_END => self.extram[(loc - EXTRAM_START) as usize],
@@ -94,7 +99,7 @@ impl MemoryBus {
                 }
                 _ => 0,
             },
-            IME => self.ie,
+            IME => self.interrupt.iflag,
             _ => {
                 println!("Read: memory not handled: {:x}", loc);
                 0
@@ -106,6 +111,7 @@ impl MemoryBus {
         let loc = at & MEM_MAX;
 
         match loc {
+            IFLAG => self.interrupt.set_iflag(value),
             0..=ROM_B2_END => self.rom[loc as usize] = value,
             EXTRAM_START..=EXTRAM_END => self.extram[(loc - EXTRAM_START) as usize] = value,
             IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize] = value,
@@ -122,7 +128,7 @@ impl MemoryBus {
                 }
                 _ => {}
             },
-            IME => self.ie = value,
+            IME => self.interrupt.set_ie(value),
             _ => println!("Write: memory not handled: {:x}", loc),
         }
     }
