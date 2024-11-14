@@ -73,13 +73,8 @@ impl Cpu {
         self.memory.tick();
         self.memory.tick();
         self.ime = false;
-        let interrupt_addr = self.memory.interrupt.get_interrupt_addr();
-        match interrupt_addr {
-            Ok(addr) => {
-                self.push(Reg16::SP);
-                self.memory.pc = addr;
-            }
-            Err(_) => println!("Interrupt was triggered but none was authorized."),
-        }
+        let addr = self.memory.interrupt.get_interrupt_addr();
+        self.push(Reg16::SP);
+        self.memory.pc = addr;
     }
 }

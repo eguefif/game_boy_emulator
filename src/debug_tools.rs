@@ -76,10 +76,17 @@ fn display_opcode(opcode: u8, cpu: &mut Cpu) {
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{}", cpu.reg);
     print!(" cycles: {}", cpu.memory.cycle - 1);
-    let sp = cpu.reg.sp;
-    let sp_mem = ((cpu.memory.read(sp + 1) as u16) << 8) | cpu.memory.read(sp) as u16;
-    print!("| memory[sp]: {:x}", sp_mem);
+    display_stack(cpu);
     println!();
+}
+
+fn display_stack(cpu: &mut Cpu) {
+    let mut sp = cpu.reg.sp;
+    let lo = cpu.memory.read(sp) as u16;
+    sp = sp.wrapping_add(1);
+    let hi = cpu.memory.read(sp) as u16;
+    let sp_mem = (hi << 8) | lo;
+    print!("| memory[sp]: {:x}", sp_mem);
 }
 
 fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {

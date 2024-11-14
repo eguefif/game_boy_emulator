@@ -17,34 +17,22 @@ impl Interrupt {
     }
 
     pub fn should_interrupt(&mut self) -> bool {
-        let check = self.iflag & self.ie;
-        check >= 1
+        self.iflag & self.ie != 0
     }
 
-    pub fn get_next_interrupt(&mut self) -> Result<u32, bool> {
-        let mut position = 0;
-        loop {
-            if self.is_interrupt_enabled(position) {
-                self.iflag &= !(1 << position);
-                return Ok(position);
-            }
-            if position > 32 {
-                break;
-            }
-            position += 1;
-        }
-        Err(false)
+    pub fn get_next_interrupt(&mut self) -> u16 {
+        let int = self.ie & self.iflag;
+        int.trailing_zeros() as u16
     }
 
-    pub fn get_interrupt_addr(&mut self) -> Result<u16, bool> {
-        match self.get_next_interrupt() {
-            Ok(interrupt) => Ok(0x40 + (interrupt as u16 * 8)),
-            Err(e) => Err(e),
-        }
+    pub fn get_interrupt_addr(&mut self) -> u16 {
+        let int = self.get_next_interrupt();
+        self.reset_int(int);
+        0x40 + (int * 8)
     }
 
-    fn is_interrupt_enabled(&mut self, position: u32) -> bool {
-        (self.ie >> position) & 1 == 1 && (self.iflag >> position) & 1 == 1
+    fn reset_int(&mut self, int: u16) {
+        self.iflag &= !(1 << int);
     }
 }
 
@@ -58,7 +46,7 @@ mod tests {
         int.iflag = 0b_0001_0101;
         int.ie = 0b_0001_1100;
 
-        let check = int.get_next_interrupt().unwrap();
+        let check = int.get_next_interrupt();
 
         assert_eq!(check, 2);
     }
@@ -69,7 +57,7 @@ mod tests {
         int.iflag = 0b_0001_0000;
         int.ie = 0b_0001_1111;
 
-        let check = int.get_next_interrupt().unwrap();
+        let check = int.get_next_interrupt();
 
         assert_eq!(check, 4);
     }
@@ -80,42 +68,9 @@ mod tests {
         int.iflag = 0b_0001_1111;
         int.ie = 0b_0001_1111;
 
-        let check = int.get_next_interrupt().unwrap();
+        let check = int.get_next_interrupt();
 
         assert_eq!(check, 0);
-    }
-
-    #[test]
-    fn it_check_interrupt_enabled_true() {
-        let mut int = Interrupt::new();
-        int.ie = 0b_0000_1000;
-        int.iflag = 0b_0000_1000;
-
-        let check = int.is_interrupt_enabled(3);
-
-        assert!(check);
-    }
-
-    #[test]
-    fn it_check_interrupt_enabled_false2() {
-        let mut int = Interrupt::new();
-        int.ie = 0b_0000_0010;
-        int.iflag = 0b_0000_0010;
-
-        let check = int.is_interrupt_enabled(3);
-
-        assert!(!check);
-    }
-
-    #[test]
-    fn it_check_interrupt_enabled_false() {
-        let mut int = Interrupt::new();
-        int.ie = 0b_0001_0000;
-        int.iflag = 0b_0001_0000;
-
-        let check = int.is_interrupt_enabled(3);
-
-        assert!(!check);
     }
 
     #[test]
@@ -124,9 +79,8 @@ mod tests {
         int.iflag = 0b_0001_1100;
         int.ie = 0b_0001_0000;
 
-        let addr = int.get_interrupt_addr().unwrap();
+        let addr = int.get_interrupt_addr();
 
-        println!("addr {:x}", addr);
         assert_eq!(int.iflag, 0b_0000_1100);
         assert_eq!(addr, 0x60);
     }
@@ -137,10 +91,9 @@ mod tests {
         int.iflag = 0b_0000_1101;
         int.ie = 0b_0001_1111;
 
-        let addr = int.get_interrupt_addr().unwrap();
+        let addr = int.get_interrupt_addr();
 
         assert_eq!(int.iflag, 0b_0000_1100);
-        println!("addr {:x}", addr);
         assert_eq!(addr, 0x40);
     }
 
@@ -150,7 +103,7 @@ mod tests {
         int.iflag = 0b_0000_1101;
         int.ie = 0b_0001_1111;
 
-        let _ = int.get_interrupt_addr().unwrap();
+        let _ = int.get_interrupt_addr();
 
         assert_eq!(int.iflag, 0b_0000_1100);
     }
@@ -161,7 +114,7 @@ mod tests {
         int.iflag = 0b_0001_0000;
         int.ie = 0b_0001_1111;
 
-        let _ = int.get_interrupt_addr().unwrap();
+        let _ = int.get_interrupt_addr();
 
         assert_eq!(int.iflag, 0b_0000_0000);
     }
