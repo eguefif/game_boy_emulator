@@ -64,7 +64,7 @@ impl Cpu {
             BC => self.reg.set_bc(value),
             HL => self.reg.set_hl(value),
             DE => self.reg.set_de(value),
-            SP => {}
+            SP => self.reg.sp = value,
         }
     }
 
@@ -82,7 +82,7 @@ impl Cpu {
             BC => self.reg.bc(),
             HL => self.reg.hl(),
             DE => self.reg.de(),
-            SP => 0,
+            SP => self.reg.sp,
         };
         self.make_push(value);
     }

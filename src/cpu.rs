@@ -26,6 +26,7 @@ pub struct Cpu {
     ime: bool,
     prepare_ime: bool,
     halted: bool,
+    nop_counter: u8,
 }
 
 impl Cpu {
@@ -36,35 +37,49 @@ impl Cpu {
             prepare_ime: false,
             ime: false,
             halted: false,
+            nop_counter: 0,
         }
     }
 
-    pub fn step(&mut self) {
-        if !self.halted {
-            let opcode = self.memory.fetch_next_byte();
-            let ime = self.ime;
-            if self.prepare_ime {
-                self.ime = !self.ime;
-                self.prepare_ime = false;
-            }
-            if self.halted {
-                self.memory.tick();
-            }
-            if !self.halted && ime && self.memory.interrupt.should_interrupt() {
-                self.handle_interrupt();
-            } else if !self.halted {
-                handle_debug(opcode, self);
-                self.execute(opcode);
-            }
+    pub fn step(&mut self) -> bool {
+        let ime = self.ime;
+        if self.prepare_ime {
+            self.ime = !self.ime;
+            self.prepare_ime = false;
         }
+        if self.halted {
+            self.memory.tick();
+        }
+        if self.halted && ime && self.memory.interrupt.should_interrupt() {
+            self.halted = false;
+        } else if ime && self.memory.interrupt.should_interrupt() {
+            self.handle_interrupt();
+        } else if !self.halted {
+            let opcode = self.memory.fetch_next_byte();
+            if opcode == 0 {
+                self.nop_counter += 1;
+                if self.nop_counter > 15 {
+                    return false;
+                }
+            }
+            handle_debug(opcode, self);
+            self.execute(opcode);
+        }
+        true
     }
 
     fn handle_interrupt(&mut self) {
+        println!("entering interrupt handler");
         self.memory.tick();
         self.memory.tick();
         self.ime = false;
-        let interrupt_addr = self.memory.interrupt.reset_iflag();
-        self.push(Reg16::SP);
-        self.memory.pc = interrupt_addr;
+        let interrupt_addr = self.memory.interrupt.get_interrupt_addr();
+        match interrupt_addr {
+            Ok(addr) => {
+                self.push(Reg16::SP);
+                self.memory.pc = addr;
+            }
+            Err(_) => println!("Interrupt was triggered but none was authorized."),
+        }
     }
 }

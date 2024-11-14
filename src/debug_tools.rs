@@ -3,7 +3,7 @@ use std::io::stdin;
 use crate::{cpu::registers::combine, cpu::Cpu};
 
 const TEST_ROM: bool = true;
-const DEBUG_MODE: bool = false;
+const DEBUG_MODE: bool = true;
 const DEBUG_STOP: bool = false;
 static mut TEST_ROM_MESSAGE: String = String::new();
 static mut STOP_CYCLE: u128 = 0;
@@ -76,6 +76,9 @@ fn display_opcode(opcode: u8, cpu: &mut Cpu) {
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{}", cpu.reg);
     print!(" cycles: {}", cpu.memory.cycle - 1);
+    let sp = cpu.reg.sp;
+    let sp_mem = ((cpu.memory.read(sp + 1) as u16) << 8) | cpu.memory.read(sp) as u16;
+    print!("| memory[sp]: {:x}", sp_mem);
     println!();
 }
 
