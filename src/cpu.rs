@@ -26,7 +26,6 @@ pub struct Cpu {
     ime: bool,
     prepare_ime: bool,
     halted: bool,
-    nop_counter: u8,
 }
 
 impl Cpu {
@@ -37,11 +36,10 @@ impl Cpu {
             prepare_ime: false,
             ime: false,
             halted: false,
-            nop_counter: 0,
         }
     }
 
-    pub fn step(&mut self) -> bool {
+    pub fn step(&mut self) {
         let ime = self.ime;
         if self.prepare_ime {
             self.ime = !self.ime;
@@ -55,17 +53,14 @@ impl Cpu {
         } else if ime && self.memory.interrupt.should_interrupt() {
             self.handle_interrupt();
         } else if !self.halted {
-            let opcode = self.memory.fetch_next_byte();
-            if opcode == 0 {
-                self.nop_counter += 1;
-                if self.nop_counter > 15 {
-                    return false;
-                }
-            }
-            handle_debug(opcode, self);
-            self.execute(opcode);
+            self.handle_execution()
         }
-        true
+    }
+
+    fn handle_execution(&mut self) {
+        let opcode = self.memory.fetch_next_byte();
+        handle_debug(opcode, self);
+        self.execute(opcode);
     }
 
     fn handle_interrupt(&mut self) {

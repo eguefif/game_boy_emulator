@@ -7,8 +7,6 @@ pub mod memorybus;
 fn main() {
     let mut cpu = Cpu::new();
     loop {
-        if !cpu.step() {
-            break;
-        }
+        cpu.step();
     }
 }
