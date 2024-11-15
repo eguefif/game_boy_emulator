@@ -19,6 +19,7 @@ pub mod interrupt;
 pub mod ld;
 pub mod read_write_cpu;
 pub mod registers;
+pub mod timer;
 
 pub struct Cpu {
     pub reg: Registers,
@@ -55,6 +56,7 @@ impl Cpu {
         } else if !self.halted {
             self.handle_execution()
         }
+        self.handle_timer();
     }
 
     fn handle_execution(&mut self) {

@@ -3,6 +3,7 @@
 
 use crate::cpu::interrupt::Interrupt;
 use crate::cpu::registers::{combine, split_u16};
+use crate::cpu::timer::DIV;
 use std::{env, fs::File, io::Read};
 
 const ROM_B1_END: u16 = 0x3FFF;
@@ -113,6 +114,7 @@ impl MemoryBus {
         match loc {
             IFLAG => self.interrupt.set_iflag(value),
             0..=ROM_B2_END => self.rom[loc as usize] = value,
+            DIV => self.io_reg[(DIV - IOREG_START) as usize] = 0,
             EXTRAM_START..=EXTRAM_END => self.extram[(loc - EXTRAM_START) as usize] = value,
             IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize] = value,
             VRAM_START..=VRAM_END => self.vram[(loc - VRAM_START) as usize] = value,

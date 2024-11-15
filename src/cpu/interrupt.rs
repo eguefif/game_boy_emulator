@@ -3,9 +3,15 @@ pub struct Interrupt {
     pub ie: u8,
 }
 
+const TIMER: u8 = 0b_0000_0100;
+
 impl Interrupt {
     pub fn new() -> Interrupt {
         Interrupt { iflag: 0, ie: 0 }
+    }
+
+    pub fn require_timer(&mut self) {
+        self.iflag |= TIMER;
     }
 
     pub fn set_iflag(&mut self, value: u8) {
