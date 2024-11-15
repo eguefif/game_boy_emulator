@@ -160,6 +160,7 @@ impl MemoryBus {
 
     pub fn tick(&mut self) {
         self.cycle += 1;
+        self.handle_timer();
     }
 
     pub fn fetch_next_word(&mut self) -> u16 {

@@ -56,7 +56,6 @@ impl Cpu {
         } else if !self.halted {
             self.handle_execution()
         }
-        self.handle_timer();
     }
 
     fn handle_execution(&mut self) {

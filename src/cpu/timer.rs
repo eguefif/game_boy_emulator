@@ -1,4 +1,4 @@
-use crate::cpu::Cpu;
+use crate::memorybus::MemoryBus;
 
 const DIV_FREQ: u128 = 16384;
 pub const DIV: u16 = 0xFF04;
@@ -6,7 +6,7 @@ const TIMA: u16 = 0xFF05;
 const TMA: u16 = 0xFF06;
 const TAC: u16 = 0xFF07;
 
-impl Cpu {
+impl MemoryBus {
     pub fn handle_timer(&mut self) {
         self.handle_div();
         if self.is_tima_on() {
@@ -15,20 +15,23 @@ impl Cpu {
     }
 
     fn handle_div(&mut self) {
-        let modulo_div = self.memory.cycle % DIV_FREQ;
-        if modulo_div < 7 {
-            let value = self.memory.read(DIV) + 1;
-            self.memory.write(DIV, value);
+        let modulo_div = self.cycle % DIV_FREQ;
+        if modulo_div == 0 {
+            let (value, overflow) = self.read(DIV).overflowing_add(1);
+            if overflow {
+                self.interrupt.require_timer();
+            }
+            self.write(DIV, value);
         }
     }
 
     fn is_tima_on(&mut self) -> bool {
-        let tac = self.memory.read(TAC);
+        let tac = self.read(TAC);
         tac >> 2 & 1 == 1
     }
 
     fn handle_tima(&mut self) {
-        let freq_bits = self.memory.read(TAC) & 3;
+        let freq_bits = self.read(TAC) & 3;
         let freq = match freq_bits {
             0 => 4096,
             1 => 26144,
@@ -36,16 +39,16 @@ impl Cpu {
             3 => 16384,
             _ => 0,
         };
-        let modulo_div = self.memory.cycle % freq;
-        if modulo_div < 7 {
-            let tima = self.memory.read(TIMA);
+        let modulo_div = self.cycle % freq;
+        if modulo_div == 0 {
+            let tima = self.read(TIMA);
             let (res, overflow) = tima.overflowing_add(1);
             if overflow {
-                let tma = self.memory.read(TMA);
-                self.memory.write(TIMA, tma);
-                self.memory.interrupt.require_timer();
+                let tma = self.read(TMA);
+                self.write(TIMA, tma);
+                self.interrupt.require_timer();
             } else {
-                self.memory.write(TIMA, res);
+                self.write(TIMA, res);
             }
         }
     }
