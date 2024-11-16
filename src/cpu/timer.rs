@@ -15,13 +15,24 @@ impl MemoryBus {
     }
 
     fn handle_div(&mut self) {
-        let modulo_div = self.cycle % DIV_FREQ;
-        if modulo_div == 0 {
-            let (value, overflow) = self.read(DIV).overflowing_add(1);
-            if overflow {
-                self.interrupt.require_timer();
-            }
-            self.write(DIV, value);
+        let frequ = self.freq_bit();
+        let mut div = self.div;
+        let before = div & frequ != 0 && self.is_tima_on();
+        div = div.wrapping_add(4);
+        if before && div & frequ == 0 {
+            self.handle_tima();
+        }
+        self.div = div;
+    }
+
+    fn freq_bit(&mut self) -> u16 {
+        let tac = self.read(TAC);
+        match tac & 0b11 {
+            0b00 => 1 << 9,
+            0b01 => 1 << 3,
+            0b10 => 1 << 5,
+            0b11 => 1 << 7,
+            _ => panic!("TIMER: Wrong tac access"),
         }
     }
 
@@ -31,25 +42,10 @@ impl MemoryBus {
     }
 
     fn handle_tima(&mut self) {
-        let freq_bits = self.read(TAC) & 3;
-        let freq = match freq_bits {
-            0 => 4096,
-            1 => 26144,
-            2 => 65536,
-            3 => 16384,
-            _ => 0,
-        };
-        let modulo_div = self.cycle % freq;
-        if modulo_div == 0 {
-            let tima = self.read(TIMA);
-            let (res, overflow) = tima.overflowing_add(1);
-            if overflow {
-                let tma = self.read(TMA);
-                self.write(TIMA, tma);
-                self.interrupt.require_timer();
-            } else {
-                self.write(TIMA, res);
-            }
+        let (res, overflow) = self.tima.overflowing_add(1);
+        if overflow {
+            self.interrupt.require_timer();
         }
+        self.tima = res;
     }
 }

@@ -62,8 +62,8 @@ pub struct MemoryBus {
     ie: u8,
     pub pc: u16,
     pub cycle: u128,
-    div: u16,
-    tima: u8,
+    pub div: u16,
+    pub tima: u8,
     tac: u8,
     tma: u8,
 }
