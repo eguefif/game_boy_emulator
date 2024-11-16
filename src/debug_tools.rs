@@ -3,7 +3,7 @@ use std::io::stdin;
 use crate::{cpu::registers::combine, cpu::Cpu};
 
 pub const DEBUG_GRAPHIC: bool = false;
-const TEST_ROM: bool = false;
+const TEST_ROM: bool = true;
 const DEBUG_MODE: bool = false;
 const DEBUG_STOP: bool = false;
 static mut TEST_ROM_MESSAGE: String = String::new();
