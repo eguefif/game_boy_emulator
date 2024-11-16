@@ -9,6 +9,7 @@ use crate::cpu::registers::Reg8;
 use crate::cpu::registers::Reg8::{A, B, C, D, E, H, L};
 use crate::cpu::registers::Registers;
 use crate::debug_tools::handle_debug;
+use crate::joypad::Joypad;
 use crate::memorybus::MemoryBus;
 
 pub mod alu;
@@ -40,7 +41,8 @@ impl Cpu {
         }
     }
 
-    pub fn step(&mut self) {
+    pub fn step(&mut self, joypad: &mut Joypad) {
+        self.handle_joypad(joypad);
         let ime = self.ime;
         if self.prepare_ime {
             self.ime = !self.ime;
@@ -58,6 +60,13 @@ impl Cpu {
         }
     }
 
+    fn handle_joypad(&mut self, joypad: &mut Joypad) {
+        self.memory.joypad = joypad.clone();
+        if joypad.is_interrupt() {
+            self.memory.interrupt.require_joypad();
+        }
+    }
+
     fn handle_execution(&mut self) {
         let opcode = self.memory.fetch_next_byte();
         handle_debug(opcode, self);
@@ -65,7 +74,6 @@ impl Cpu {
     }
 
     fn handle_interrupt(&mut self) {
-        //println!("entering interrupt handler");
         self.memory.tick();
         self.memory.tick();
         self.ime = false;

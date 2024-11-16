@@ -10,6 +10,10 @@ impl Interrupt {
         Interrupt { iflag: 0, ie: 0 }
     }
 
+    pub fn require_joypad(&mut self) {
+        self.iflag |= 0b0001_0000;
+    }
+
     pub fn require_timer(&mut self) {
         self.iflag |= TIMER;
     }

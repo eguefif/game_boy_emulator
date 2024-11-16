@@ -4,6 +4,7 @@
 use crate::cpu::interrupt::Interrupt;
 use crate::cpu::registers::{combine, split_u16};
 use crate::cpu::timer::{DIV, TAC, TIMA, TMA};
+use crate::joypad::Joypad;
 use std::{env, fs::File, io::Read};
 
 const ROM_B1_END: u16 = 0x3FFF;
@@ -50,6 +51,7 @@ const IME: u16 = 0xFFFF;
 const IFLAG: u16 = 0xFF0F;
 
 pub struct MemoryBus {
+    pub joypad: Joypad,
     pub interrupt: Interrupt,
     rom: [u8; TOTAL_ROM_SIZE as usize],
     io_reg: [u8; IOREG_SIZE as usize],
@@ -71,6 +73,7 @@ pub struct MemoryBus {
 impl MemoryBus {
     pub fn new() -> MemoryBus {
         MemoryBus {
+            joypad: Joypad::new(),
             interrupt: Interrupt::new(),
             rom: get_rom(),
             io_reg: [0; IOREG_SIZE as usize],
@@ -98,6 +101,7 @@ impl MemoryBus {
             IFLAG => self.interrupt.iflag,
             TAC => self.tac,
             TMA => self.tma,
+            0xFF00 => self.joypad.get_joypad(),
             0..=ROM_B2_END => self.rom[loc as usize],
             IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize],
             EXTRAM_START..=EXTRAM_END => self.extram[(loc - EXTRAM_START) as usize],
@@ -126,6 +130,7 @@ impl MemoryBus {
         match loc {
             IFLAG => self.interrupt.set_iflag(value),
             0..=ROM_B2_END => self.rom[loc as usize] = value,
+            0xFF00 => self.joypad.set_joypad(value),
             DIV => self.div = 0,
             TIMA => self.tima = value,
             TMA => self.tma = value,
