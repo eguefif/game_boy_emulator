@@ -49,6 +49,7 @@ fn print_testrom_message() {
     unsafe {
         if !TEST_ROM_MESSAGE.is_empty() && should_print() {
             println!("Rom result: {}", TEST_ROM_MESSAGE);
+            std::process::exit(0);
         }
     }
 }
@@ -64,7 +65,6 @@ fn should_print() -> bool {
         false
     }
 }
-
 fn display_opcode(opcode: u8, cpu: &mut Cpu) {
     let mut opcode_display = opcode;
     if opcode == 0xcb {
@@ -76,10 +76,12 @@ fn display_opcode(opcode: u8, cpu: &mut Cpu) {
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{}", cpu.reg);
     print!(" cycles: {}", cpu.memory.cycle - 1);
-    display_stack(cpu);
+    print!(" | iflag: {:0<5b}", cpu.memory.interrupt.iflag);
+    //display_stack(cpu);
     println!();
 }
 
+#[allow(dead_code)]
 fn display_stack(cpu: &mut Cpu) {
     let mut sp = cpu.reg.sp;
     let lo = cpu.memory.read(sp) as u16;
@@ -128,7 +130,7 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x04 => String::from("inc b"),
         0x14 => String::from("inc d"),
         0x24 => String::from("inc h"),
-        0x34 => String::from("inc hl"),
+        0x34 => String::from("inc (hl)"),
         0x0C => String::from("inc c"),
         0x1C => String::from("inc e"),
         0x2C => String::from("inc l"),
@@ -137,7 +139,7 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x05 => String::from("dec b"),
         0x15 => String::from("dec d"),
         0x25 => String::from("dec h"),
-        0x35 => String::from("dec hl"),
+        0x35 => String::from("dec (hl)"),
         0x0D => String::from("dec c"),
         0x1D => String::from("dec e"),
         0x2D => String::from("dec l"),
@@ -264,11 +266,11 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
         0x28 => format!("jr z, #${:02x} ({})", imm8, imm8 as i8),
         0x38 => format!("jr c, #${:02x} ({})", imm8, imm8 as i8),
 
-        0xC2 => format!("jp nz, (${:04x} ({})", imm16, imm16 as i8),
-        0xD2 => format!("jp nc, (${:04x} ({})", imm16, imm16 as i8),
+        0xC2 => format!("jp nz, (${:04x})", imm16),
+        0xD2 => format!("jp nc, (${:04x})", imm16),
         0xC3 => format!("jp (${:04x})", imm16),
-        0xCA => format!("jp z, (${:04x}) ({})", imm16, imm16 as i8),
-        0xDA => format!("jp c, (${:04x}) ({})", imm16, imm16 as i8),
+        0xCA => format!("jp z, (${:04x})", imm16),
+        0xDA => format!("jp c, (${:04x})", imm16),
         0xE9 => String::from("jp hl"),
 
         //***** Load section

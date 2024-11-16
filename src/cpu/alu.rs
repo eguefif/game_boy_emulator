@@ -138,6 +138,8 @@ impl Cpu {
         let value = self.read(source);
         let acc = self.reg.a;
         self.reg.a = value & acc;
+        //println!("value && acc: {} && {} = {}", value, acc, self.reg.a);
+        //println!("f: {:b}", self.reg.f);
         self.reg.set_flag(ZERO, self.reg.a == 0);
         self.reg.set_flag(N, false);
         self.reg.set_flag(HALF, true);
@@ -687,5 +689,17 @@ mod tests {
     fn set_first_instruction(value: u8, cpu: &mut Cpu) {
         let pc = cpu.memory.pc;
         cpu.memory.write_byte(pc, value);
+    }
+
+    #[test]
+    fn it_should_and_imm8() {
+        let mut cpu = Cpu::new();
+        set_first_instruction(0xe6, &mut cpu);
+        cpu.memory.write(0x1, 4);
+        cpu.reg.a = 0xc2;
+
+        cpu.step();
+        assert_eq!(cpu.reg.a, 0x0);
+        assert!(cpu.reg.is_flag(ZERO));
     }
 }

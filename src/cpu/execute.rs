@@ -50,7 +50,7 @@ impl Cpu {
             //******* Interruption
             0xF3 => self.di(),
             0xFB => self.ei(),
-            //
+
             //******* Bit operations
             0x07 => self.rlca(),
             0x17 => self.rla(),

@@ -49,7 +49,7 @@ impl Cpu {
         if self.halted {
             self.memory.tick();
         }
-        if self.halted && ime && self.memory.interrupt.should_interrupt() {
+        if self.halted && !ime && self.memory.interrupt.should_interrupt() {
             self.halted = false;
         } else if ime && self.memory.interrupt.should_interrupt() {
             self.handle_interrupt();
@@ -65,7 +65,7 @@ impl Cpu {
     }
 
     fn handle_interrupt(&mut self) {
-        println!("entering interrupt handler");
+        //println!("entering interrupt handler");
         self.memory.tick();
         self.memory.tick();
         self.ime = false;

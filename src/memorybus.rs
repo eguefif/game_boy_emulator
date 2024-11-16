@@ -64,8 +64,8 @@ pub struct MemoryBus {
     pub cycle: u128,
     pub div: u16,
     pub tima: u8,
-    tac: u8,
-    tma: u8,
+    pub tac: u8,
+    pub tma: u8,
 }
 
 impl MemoryBus {
@@ -95,7 +95,7 @@ impl MemoryBus {
         match loc {
             DIV => (self.div >> 8) as u8,
             TIMA => self.tima,
-            IFLAG => self.interrupt.ie,
+            IFLAG => self.interrupt.iflag,
             TAC => self.tac,
             TMA => self.tma,
             0..=ROM_B2_END => self.rom[loc as usize],
@@ -112,7 +112,7 @@ impl MemoryBus {
                 }
                 _ => 0,
             },
-            IME => self.interrupt.iflag,
+            IME => self.interrupt.ie,
             _ => {
                 println!("Read: memory not handled: {:x}", loc);
                 0

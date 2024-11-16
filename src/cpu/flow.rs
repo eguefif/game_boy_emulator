@@ -101,7 +101,7 @@ impl Cpu {
     }
 
     pub fn jump(&mut self, condition: Condition, addr: JpAddr) {
-        let addr = match addr {
+        let jp_addr = match addr {
             JpAddr::HL => self.reg.hl(),
             JpAddr::S8 => {
                 let offset = self.memory.fetch_next_byte() as i8;
@@ -110,8 +110,10 @@ impl Cpu {
             }
             JpAddr::A16 => self.memory.fetch_next_word(),
         };
-        if self.should_jump(condition) {
-            self.jump_to_addr(addr);
+        if let JpAddr::HL = addr {
+            self.memory.pc = jp_addr;
+        } else if self.should_jump(condition) {
+            self.jump_to_addr(jp_addr);
         }
     }
 
