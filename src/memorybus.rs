@@ -58,7 +58,11 @@ impl MemoryBus {
             0..=0x7FFF => self.rom[loc as usize],
             0x8000..=0x9FFF => self.vram[(loc - 0x8000) as usize],
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize],
-            0xC000..=0xCFFF => self.wram[(loc - 0xC000) as usize],
+            0xC000..=0xDFFF => self.wram[(loc - 0xC000) as usize],
+            0xE000..=0xFDFF => {
+                let new_loc = loc & (WRAM_SIZE - 1);
+                self.wram[(new_loc - 0xC000) as usize]
+            }
             0xFFFF => self.interrupt.ie,
             _ => {
                 println!("Read: memory not handled: {:x}", loc);
@@ -82,7 +86,11 @@ impl MemoryBus {
             0..=0x7FFF => self.rom[loc as usize] = value,
             0x8000..=0x9FFF => self.vram[(loc - 0x8000) as usize] = value,
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize] = value,
-            0xC000..=0xCFFF => self.wram[(loc - 0xC000) as usize] = value,
+            0xC000..=0xDFFF => self.wram[(loc - 0xC000) as usize] = value,
+            0xE000..=0xFDFF => {
+                let new_loc = loc & (WRAM_SIZE - 1);
+                self.wram[(new_loc - 0xC000) as usize] = value;
+            }
             0xFFFF => self.interrupt.set_ie(value),
             _ => println!("Write: memory not handled: {:x}", loc),
         }
