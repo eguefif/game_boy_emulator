@@ -22,7 +22,8 @@ fn main() {
         if let Some(ref mut w) = debug_window {
             w.update();
         }
-        cpu.step(&mut joypad);
+        cpu.joypad = joypad.clone();
+        cpu.step();
     }
 }
 

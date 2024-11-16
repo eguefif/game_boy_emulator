@@ -28,6 +28,7 @@ pub struct Cpu {
     ime: bool,
     prepare_ime: bool,
     halted: bool,
+    pub joypad: Joypad,
 }
 
 impl Cpu {
@@ -38,11 +39,12 @@ impl Cpu {
             prepare_ime: false,
             ime: false,
             halted: false,
+            joypad: Joypad::new(),
         }
     }
 
-    pub fn step(&mut self, joypad: &mut Joypad) {
-        self.handle_joypad(joypad);
+    pub fn step(&mut self) {
+        self.handle_joypad();
         let ime = self.ime;
         if self.prepare_ime {
             self.ime = !self.ime;
@@ -60,9 +62,9 @@ impl Cpu {
         }
     }
 
-    fn handle_joypad(&mut self, joypad: &mut Joypad) {
-        self.memory.joypad = joypad.clone();
-        if joypad.is_interrupt() {
+    fn handle_joypad(&mut self) {
+        self.memory.joypad = self.joypad.clone();
+        if self.joypad.is_interrupt() {
             self.memory.interrupt.require_joypad();
         }
     }

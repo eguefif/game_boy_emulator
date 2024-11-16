@@ -138,8 +138,6 @@ impl Cpu {
         let value = self.read(source);
         let acc = self.reg.a;
         self.reg.a = value & acc;
-        //println!("value && acc: {} && {} = {}", value, acc, self.reg.a);
-        //println!("f: {:b}", self.reg.f);
         self.reg.set_flag(ZERO, self.reg.a == 0);
         self.reg.set_flag(N, false);
         self.reg.set_flag(HALF, true);
