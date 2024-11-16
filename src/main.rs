@@ -4,6 +4,7 @@ use minifb::{Window, WindowOptions};
 
 use crate::cpu::Cpu;
 
+pub mod cartridge;
 pub mod cpu;
 pub mod debug_tools;
 pub mod joypad;

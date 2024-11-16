@@ -1,13 +1,12 @@
 #![allow(dead_code)]
 #![allow(clippy::new_without_default)]
 
+use crate::cartridge::Cartridge;
 use crate::cpu::interrupt::Interrupt;
 use crate::cpu::registers::{combine, split_u16};
 use crate::cpu::timer::Timer;
 use crate::joypad::Joypad;
-use std::{env, fs::File, io::Read};
 
-const TOTAL_ROM_SIZE: u16 = 0x7FFF + 1;
 const VRAM_SIZE: u16 = 0x9FFF - 0x8000 + 1;
 const HRAM_SIZE: u16 = 0xFFFE - 0xFF80 + 1;
 const WRAM_SIZE: u16 = 0xDFFF - 0xC000 + 1;
@@ -15,9 +14,9 @@ const MEM_MAX: u16 = 0xFFFF;
 
 pub struct MemoryBus {
     timer: Timer,
+    cartridge: Cartridge,
     pub joypad: Joypad,
     pub interrupt: Interrupt,
-    rom: [u8; TOTAL_ROM_SIZE as usize],
     vram: [u8; VRAM_SIZE as usize],
     hram: [u8; HRAM_SIZE as usize],
     wram: [u8; WRAM_SIZE as usize],
@@ -30,10 +29,10 @@ pub struct MemoryBus {
 impl MemoryBus {
     pub fn new() -> MemoryBus {
         MemoryBus {
+            cartridge: Cartridge::new(),
             timer: Timer::new(),
             joypad: Joypad::new(),
             interrupt: Interrupt::new(),
-            rom: get_rom(),
             vram: [0; VRAM_SIZE as usize],
             hram: [0; HRAM_SIZE as usize],
             wram: [0; WRAM_SIZE as usize],
@@ -55,7 +54,7 @@ impl MemoryBus {
             0xFF06 => self.timer.tma,
             0xFF07 => self.timer.tac,
             0xFF0F => self.interrupt.iflag,
-            0..=0x7FFF => self.rom[loc as usize],
+            0..=0x7FFF => self.cartridge.read(loc),
             0x8000..=0x9FFF => self.vram[(loc - 0x8000) as usize],
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize],
             0xC000..=0xDFFF => self.wram[(loc - 0xC000) as usize],
@@ -83,7 +82,7 @@ impl MemoryBus {
             0xFF06 => self.timer.tma = value,
             0xFF07 => self.timer.tac = value | 0xF8,
             0xFF0F => self.interrupt.set_iflag(value),
-            0..=0x7FFF => self.rom[loc as usize] = value,
+            0..=0x7FFF => self.cartridge.write(loc, value),
             0x8000..=0x9FFF => self.vram[(loc - 0x8000) as usize] = value,
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize] = value,
             0xC000..=0xDFFF => self.wram[(loc - 0xC000) as usize] = value,
@@ -136,27 +135,4 @@ impl MemoryBus {
         self.write_byte(at, low);
         self.write_byte(at.wrapping_add(1), high);
     }
-}
-
-fn get_rom() -> [u8; TOTAL_ROM_SIZE as usize] {
-    let filename = get_filename();
-    if filename == "error" {
-        return [0; TOTAL_ROM_SIZE as usize];
-    }
-    let mut rom = [0; TOTAL_ROM_SIZE as usize];
-    match File::open(filename) {
-        Ok(mut file) => {
-            let _ = file.read(&mut rom).unwrap();
-            rom
-        }
-        Err(_) => rom,
-    }
-}
-
-fn get_filename() -> String {
-    let arg: Vec<String> = env::args().collect();
-    if arg.len() != 2 {
-        return String::from("error");
-    }
-    String::from(&arg[1])
 }
