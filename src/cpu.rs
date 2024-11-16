@@ -70,7 +70,8 @@ impl Cpu {
         self.memory.tick();
         self.ime = false;
         let addr = self.memory.interrupt.get_interrupt_addr();
-        self.push(Reg16::SP);
+        let pc = self.memory.pc;
+        self.make_push(pc);
         self.memory.pc = addr;
     }
 }

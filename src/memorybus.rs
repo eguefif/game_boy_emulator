@@ -3,7 +3,7 @@
 
 use crate::cpu::interrupt::Interrupt;
 use crate::cpu::registers::{combine, split_u16};
-use crate::cpu::timer::DIV;
+use crate::cpu::timer::{DIV, TAC, TIMA, TMA};
 use std::{env, fs::File, io::Read};
 
 const ROM_B1_END: u16 = 0x3FFF;
@@ -62,6 +62,10 @@ pub struct MemoryBus {
     ie: u8,
     pub pc: u16,
     pub cycle: u128,
+    div: u16,
+    tima: u8,
+    tac: u8,
+    tma: u8,
 }
 
 impl MemoryBus {
@@ -79,13 +83,21 @@ impl MemoryBus {
             pc: 0x100,
             ie: 0,
             cycle: 0,
+            div: 0,
+            tima: 0,
+            tac: 0,
+            tma: 0,
         }
     }
 
     pub fn read(&mut self, at: u16) -> u8 {
         let loc = at & MEM_MAX;
         match loc {
+            DIV => (self.div >> 8) as u8,
+            TIMA => self.tima,
             IFLAG => self.interrupt.ie,
+            TAC => self.tac,
+            TMA => self.tma,
             0..=ROM_B2_END => self.rom[loc as usize],
             IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize],
             EXTRAM_START..=EXTRAM_END => self.extram[(loc - EXTRAM_START) as usize],
@@ -114,7 +126,10 @@ impl MemoryBus {
         match loc {
             IFLAG => self.interrupt.set_iflag(value),
             0..=ROM_B2_END => self.rom[loc as usize] = value,
-            DIV => self.io_reg[(DIV - IOREG_START) as usize] = 0,
+            DIV => self.div = 0,
+            TIMA => self.tima = value,
+            TMA => self.tma = value,
+            TAC => self.tac = value | 0xF8,
             EXTRAM_START..=EXTRAM_END => self.extram[(loc - EXTRAM_START) as usize] = value,
             IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize] = value,
             VRAM_START..=VRAM_END => self.vram[(loc - VRAM_START) as usize] = value,
@@ -136,9 +151,9 @@ impl MemoryBus {
     }
 
     pub fn fetch_next_byte(&mut self) -> u8 {
+        self.tick();
         let retval = self.read(self.pc);
         self.inc_pc();
-        self.tick();
         retval
     }
 
@@ -148,9 +163,8 @@ impl MemoryBus {
     }
 
     pub fn fetch_byte(&mut self, at: u16) -> u8 {
-        let retval = self.read(at);
         self.tick();
-        retval
+        self.read(at)
     }
 
     pub fn write_byte(&mut self, at: u16, value: u8) {

@@ -87,7 +87,7 @@ impl Cpu {
         self.make_push(value);
     }
 
-    fn make_push(&mut self, value: u16) {
+    pub fn make_push(&mut self, value: u16) {
         let (hi, lo) = split_u16(value);
         self.memory.tick();
         self.reg.dec_sp();

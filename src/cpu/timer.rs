@@ -2,9 +2,9 @@ use crate::memorybus::MemoryBus;
 
 const DIV_FREQ: u128 = 16384;
 pub const DIV: u16 = 0xFF04;
-const TIMA: u16 = 0xFF05;
-const TMA: u16 = 0xFF06;
-const TAC: u16 = 0xFF07;
+pub const TIMA: u16 = 0xFF05;
+pub const TMA: u16 = 0xFF06;
+pub const TAC: u16 = 0xFF07;
 
 impl MemoryBus {
     pub fn handle_timer(&mut self) {
