@@ -3,7 +3,7 @@
 
 use crate::cpu::interrupt::Interrupt;
 use crate::cpu::registers::{combine, split_u16};
-use crate::cpu::timer::{DIV, TAC, TIMA, TMA};
+use crate::cpu::timer::Timer;
 use crate::joypad::Joypad;
 use std::{env, fs::File, io::Read};
 
@@ -13,10 +13,6 @@ const ROM_B1_SIZE: u16 = ROM_B1_END + 1;
 const ROM_B2_START: u16 = 0x4000;
 const ROM_B2_END: u16 = 0x7FFF;
 const ROM_B2_SIZE: u16 = ROM_B2_END - ROM_B2_START + 1;
-
-const IOREG_START: u16 = 0xFF00;
-const IOREG_END: u16 = 0xFF7F;
-const IOREG_SIZE: u16 = IOREG_END - IOREG_START + 1;
 
 const VRAM_START: u16 = 0x8000;
 const VRAM_END: u16 = 0x9FFF;
@@ -47,14 +43,11 @@ const RESCALE_MIRROR: u16 = WRAM_SIZE + W2RAM_SIZE;
 const TOTAL_ROM_SIZE: u16 = ROM_B2_SIZE + ROM_B1_SIZE + 1;
 const MEM_MAX: u16 = 0xFFFF;
 
-const IME: u16 = 0xFFFF;
-const IFLAG: u16 = 0xFF0F;
-
 pub struct MemoryBus {
+    timer: Timer,
     pub joypad: Joypad,
     pub interrupt: Interrupt,
     rom: [u8; TOTAL_ROM_SIZE as usize],
-    io_reg: [u8; IOREG_SIZE as usize],
     vram: [u8; VRAM_SIZE as usize],
     hram: [u8; HRAM_SIZE as usize],
     wram: [u8; WRAM_SIZE as usize],
@@ -64,19 +57,16 @@ pub struct MemoryBus {
     ie: u8,
     pub pc: u16,
     pub cycle: u128,
-    pub div: u16,
-    pub tima: u8,
-    pub tac: u8,
-    pub tma: u8,
+    debug: [u8; 2],
 }
 
 impl MemoryBus {
     pub fn new() -> MemoryBus {
         MemoryBus {
+            timer: Timer::new(),
             joypad: Joypad::new(),
             interrupt: Interrupt::new(),
             rom: get_rom(),
-            io_reg: [0; IOREG_SIZE as usize],
             vram: [0; VRAM_SIZE as usize],
             hram: [0; HRAM_SIZE as usize],
             wram: [0; WRAM_SIZE as usize],
@@ -86,24 +76,22 @@ impl MemoryBus {
             pc: 0x100,
             ie: 0,
             cycle: 0,
-            div: 0,
-            tima: 0,
-            tac: 0,
-            tma: 0,
+            debug: [0; 2],
         }
     }
 
     pub fn read(&mut self, at: u16) -> u8 {
         let loc = at & MEM_MAX;
         match loc {
-            DIV => (self.div >> 8) as u8,
-            TIMA => self.tima,
-            IFLAG => self.interrupt.iflag,
-            TAC => self.tac,
-            TMA => self.tma,
             0xFF00 => self.joypad.get_joypad(),
+            0xFF01 => self.debug[0],
+            0xFF02 => self.debug[1],
+            0xFF04 => (self.timer.div >> 8) as u8,
+            0xFF05 => self.timer.tima,
+            0xFF06 => self.timer.tma,
+            0xFF07 => self.timer.tac,
+            0xFF0F => self.interrupt.iflag,
             0..=ROM_B2_END => self.rom[loc as usize],
-            IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize],
             EXTRAM_START..=EXTRAM_END => self.extram[(loc - EXTRAM_START) as usize],
             VRAM_START..=VRAM_END => self.vram[(loc - VRAM_START) as usize],
             HRAM_START..=HRAM_END => self.hram[(loc - HRAM_START) as usize],
@@ -116,7 +104,7 @@ impl MemoryBus {
                 }
                 _ => 0,
             },
-            IME => self.interrupt.ie,
+            0xFFFF => self.interrupt.ie,
             _ => {
                 println!("Read: memory not handled: {:x}", loc);
                 0
@@ -128,15 +116,16 @@ impl MemoryBus {
         let loc = at & MEM_MAX;
 
         match loc {
-            IFLAG => self.interrupt.set_iflag(value),
-            0..=ROM_B2_END => self.rom[loc as usize] = value,
             0xFF00 => self.joypad.set_joypad(value),
-            DIV => self.div = 0,
-            TIMA => self.tima = value,
-            TMA => self.tma = value,
-            TAC => self.tac = value | 0xF8,
+            0xFF01 => self.debug[0] = value,
+            0xFF02 => self.debug[1] = value,
+            0xFF04 => self.timer.div = 0,
+            0xFF05 => self.timer.tima = value,
+            0xFF06 => self.timer.tma = value,
+            0xFF07 => self.timer.tac = value | 0xF8,
+            0xFF0F => self.interrupt.set_iflag(value),
+            0..=ROM_B2_END => self.rom[loc as usize] = value,
             EXTRAM_START..=EXTRAM_END => self.extram[(loc - EXTRAM_START) as usize] = value,
-            IOREG_START..=IOREG_END => self.io_reg[(loc - IOREG_START) as usize] = value,
             VRAM_START..=VRAM_END => self.vram[(loc - VRAM_START) as usize] = value,
             HRAM_START..=HRAM_END => self.hram[(loc - HRAM_START) as usize] = value,
             WRAM_START..=WRAM_END => self.wram[(loc - WRAM_START) as usize] = value,
@@ -150,7 +139,7 @@ impl MemoryBus {
                 }
                 _ => {}
             },
-            IME => self.interrupt.set_ie(value),
+            0xFFFF => self.interrupt.set_ie(value),
             _ => println!("Write: memory not handled: {:x}", loc),
         }
     }
@@ -179,7 +168,9 @@ impl MemoryBus {
 
     pub fn tick(&mut self) {
         self.cycle += 1;
-        self.handle_timer();
+        if self.timer.handle_timer() {
+            self.interrupt.require_timer();
+        }
     }
 
     pub fn fetch_next_word(&mut self) -> u16 {
@@ -192,10 +183,6 @@ impl MemoryBus {
         let (high, low) = split_u16(value);
         self.write_byte(at, low);
         self.write_byte(at.wrapping_add(1), high);
-    }
-
-    pub fn set_ime(&mut self, value: bool) {
-        self.write(IME, value as u8);
     }
 }
 

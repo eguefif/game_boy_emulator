@@ -16,12 +16,12 @@ fn main() {
     let mut window = get_window();
     let mut debug_window = get_debug_window();
     let mut joypad = Joypad::new();
+    window.update();
+    if let Some(ref mut w) = debug_window {
+        w.update();
+    }
     loop {
-        window.update();
         joypad.update(&window);
-        if let Some(ref mut w) = debug_window {
-            w.update();
-        }
         cpu.joypad = joypad.clone();
         cpu.step();
     }
