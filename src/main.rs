@@ -3,7 +3,7 @@ use std::time::Instant;
 use debug_tools::DEBUG_GRAPHIC;
 use joypad::Joypad;
 use minifb::{Key, Window, WindowOptions};
-use ppu::{DEBUG_HEIGHT, DEBUG_WIDTH};
+use ppu::{DEBUG_HEIGHT, DEBUG_WIDTH, HEIGHT, WIDTH};
 
 use crate::cpu::Cpu;
 
@@ -34,6 +34,8 @@ fn main() {
         cpu.step();
         if cpu.memory.cycle >= 17476 {
             cpu.memory.cycle = 0;
+            let video = cpu.memory.ppu.get_video_buffer();
+            window.update_with_buffer(video, WIDTH, HEIGHT).unwrap();
             if let Some(ref mut w) = debug_window {
                 let mem = cpu.memory.ppu.get_tiles_memory();
                 w.update_with_buffer(mem, DEBUG_WIDTH, DEBUG_HEIGHT)

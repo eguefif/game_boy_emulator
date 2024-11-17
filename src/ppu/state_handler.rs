@@ -75,7 +75,7 @@ impl Ppu {
                 }
             }
             Mode3 => {
-                //self.x += 1;
+                self.render();
             }
             _ => {}
         }

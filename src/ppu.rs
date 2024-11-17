@@ -2,16 +2,19 @@
 
 const VRAM_SIZE: usize = 0x9FFF - 0x8000 + 1;
 const OAM_SIZE: usize = 0xFE9F - 0xFE00 + 1;
-const RESOLUTION: usize = 144 * 160;
-const WIDTH: usize = 144;
 
 type Tile = [[u8; 8]; 8];
 
+pub mod renderer;
 pub mod state_handler;
 
 pub const DEBUG_WIDTH: usize = 256;
 pub const DEBUG_HEIGHT: usize = 192;
 const DEBUG_BUFFER: usize = DEBUG_WIDTH * DEBUG_HEIGHT;
+
+pub const WIDTH: usize = 160;
+pub const HEIGHT: usize = 144;
+const VIDEO_BUFFER: usize = WIDTH * HEIGHT;
 
 #[derive(PartialEq)]
 enum State {
@@ -33,6 +36,7 @@ pub struct Ppu {
     pub interrupt: PpuInterrupt,
     state: State,
     dot: u32,
+    pub video_buffer: [u32; VIDEO_BUFFER],
     debug_tiles: [u32; DEBUG_BUFFER],
     vram: [u8; VRAM_SIZE],
     tiles: [Tile; 384],
@@ -58,6 +62,7 @@ impl Ppu {
             dot: 0,
             state: State::Mode2,
             debug_tiles: [0; DEBUG_BUFFER],
+            video_buffer: [0; VIDEO_BUFFER],
             vram: [0; VRAM_SIZE],
             tiles: [[[0; 8]; 8]; 384],
             oam: [0; OAM_SIZE],
@@ -92,7 +97,7 @@ impl Ppu {
                 }
             }
             0xFE00..=0xFE9F => {
-                if self.state == State::Mode0 || self.state == State::Mode1 && true {
+                if self.state == State::Mode0 || self.state == State::Mode1 {
                     self.oam[loc - 0xFE00]
                 } else {
                     0xFF
@@ -117,8 +122,8 @@ impl Ppu {
     pub fn write(&mut self, loc: usize, value: u8) {
         match loc {
             0x8000..=0x9FFF => {
-                if true {
-                    //if self.state != State::Mode3 {
+                //if true {
+                if self.state != State::Mode3 {
                     self.vram[loc - 0x8000] = value;
                     if loc < 0x97FF {
                         self.update_tiles(loc - 0x8000);
@@ -126,7 +131,7 @@ impl Ppu {
                 }
             }
             0xFE00..=0xFE9F => {
-                if self.state == State::Mode0 || self.state == State::Mode1 && true {
+                if self.state == State::Mode0 || self.state == State::Mode1 {
                     self.oam[loc - 0xFE00] = value
                 }
             }
@@ -184,9 +189,13 @@ impl Ppu {
         }
         &self.debug_tiles
     }
+
+    pub fn get_video_buffer(&mut self) -> &[u32] {
+        &self.video_buffer
+    }
 }
 
-fn write_tile_in_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usize) {
+pub fn write_tile_in_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usize) {
     for yd in 0..8 {
         for xd in 0..8 {
             buffer[(y + yd) * DEBUG_WIDTH + xd + x] = get_u32_color(tile[yd][xd]);
