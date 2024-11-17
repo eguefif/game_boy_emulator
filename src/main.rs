@@ -15,7 +15,7 @@ pub mod joypad;
 pub mod memorybus;
 pub mod ppu;
 
-const RESOLUTION: f64 = 144.0 / 160.0;
+const RESOLUTION: f64 = 160.0 / 144.0;
 const RESOLUTION_DEBUG: f64 = DEBUG_WIDTH as f64 / DEBUG_HEIGHT as f64;
 
 fn main() {
@@ -36,7 +36,8 @@ fn main() {
             cpu.memory.cycle = 0;
             if let Some(ref mut w) = debug_window {
                 let mem = cpu.memory.ppu.get_tiles_memory();
-                w.update_with_buffer(mem, 160, 144).unwrap();
+                w.update_with_buffer(mem, DEBUG_WIDTH, DEBUG_HEIGHT)
+                    .unwrap();
             }
             while start.elapsed().as_millis() < 17 {}
         }
@@ -76,6 +77,6 @@ fn get_debug_window() -> Option<Window> {
     .expect("Error while creating window");
     window.topmost(true);
     window.set_position(20, 20);
-    window.set_background_color(255, 0, 0);
+    window.set_background_color(255, 255, 255);
     Some(window)
 }
