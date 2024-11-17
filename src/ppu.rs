@@ -1,8 +1,7 @@
 #![allow(clippy::new_without_default)]
 
-const TILES_SIZE: usize = 0x97FF - 0x8000 + 1;
-const MAP_SIZE: usize = 0x9BFF - 0x9800;
-const OAM_SIZE: usize = 0xFE9F - 0xFE00;
+const VRAM_SIZE: usize = 0x9FFF - 0x8000 + 1;
+const OAM_SIZE: usize = 0xFE9F - 0xFE00 + 1;
 const RESOLUTION: usize = 144 * 160;
 const WIDTH: usize = 144;
 
@@ -31,10 +30,8 @@ pub struct Ppu {
     state: State,
     dot: u16,
     debug_tiles: [u32; RESOLUTION + 1],
-    tiles_ram: [u8; TILES_SIZE],
+    vram: [u8; VRAM_SIZE],
     tiles: [Tile; 384],
-    map1: [u8; MAP_SIZE],
-    map2: [u8; MAP_SIZE],
     oam: [u8; OAM_SIZE],
     dma: u8,
     lcdc: u8,
@@ -58,10 +55,8 @@ impl Ppu {
             dot: 0,
             state: State::Mode2,
             debug_tiles: [0; RESOLUTION + 1],
-            tiles_ram: [0; TILES_SIZE],
+            vram: [0; VRAM_SIZE],
             tiles: [[[0; 8]; 8]; 384],
-            map1: [0; MAP_SIZE],
-            map2: [0; MAP_SIZE],
             oam: [0; OAM_SIZE],
             dma: 0,
             lcdc: 0,
@@ -86,10 +81,20 @@ impl Ppu {
 
     pub fn read(&mut self, loc: usize) -> u8 {
         match loc {
-            0x8000..=0x97FF => self.tiles_ram[loc - 0x8000],
-            0x9800..=0x9BFF => self.map1[loc - 0x9800],
-            0x9C00..=0x9FFF => self.map2[loc - 0x9C00],
-            0xFE00..=0xFE9F => self.oam[loc - 0x8FFF],
+            0x8000..=0x9FFF => {
+                if self.state == State::Mode1 {
+                    self.vram[loc - 0x8000]
+                } else {
+                    0xFF
+                }
+            }
+            0xFE00..=0xFE9F => {
+                if self.state == State::Mode0 || self.state == State::Mode1 {
+                    self.oam[loc - 0x8FFF]
+                } else {
+                    0xFF
+                }
+            }
 
             0xFF40 => self.lcdc,
             0xFF41 => self.stat,
@@ -108,16 +113,20 @@ impl Ppu {
     }
     pub fn write(&mut self, loc: usize, value: u8) {
         match loc {
-            0x8000..=0x97FF => {
-                self.tiles_ram[loc - 0x8000] = value;
-                self.write_tile(loc - 0x8000);
+            0x8000..=0x9FFF => {
+                if self.state == State::Mode1 {
+                    self.vram[loc - 0x8000] = value;
+                    self.write_tile(loc - 0x8000);
+                }
             }
-            0x9800..=0x9BFF => self.map1[loc - 0x9800] = value,
-            0x9C00..=0x9FFF => self.map2[loc - 0x9C00] = value,
-            0xFE00..=0xFE9F => self.oam[loc - 0xFE00] = value,
+            0xFE00..=0xFE9F => {
+                if self.state == State::Mode0 || self.state == State::Mode1 {
+                    self.oam[loc - 0x8FFF] = value
+                }
+            }
 
             0xFF40 => self.lcdc = value,
-            0xFF41 => self.stat = value,
+            0xFF41 => self.stat = value & 0b_0111_1100,
             0xFF42 => self.scy = value,
             0xFF43 => self.scx = value,
             0xFF44 => self.ly = value,
@@ -137,8 +146,8 @@ impl Ppu {
         let tile_loc = loc / 16;
         let row_loc = loc % 16 / 2;
 
-        let byte1 = self.tiles_ram[normalized_loc];
-        let byte2 = self.tiles_ram[normalized_loc + 1];
+        let byte1 = self.vram[normalized_loc];
+        let byte2 = self.vram[normalized_loc + 1];
         for pixel_index in 0..8 {
             let mask = 1 << pixel_index;
             let lsb = byte1 & mask;
