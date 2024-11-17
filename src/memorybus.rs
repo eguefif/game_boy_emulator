@@ -64,10 +64,9 @@ impl MemoryBus {
             0xFF0F => self.interrupt.iflag,
 
             0xFF40..=0xFF4B => self.ppu.read(loc as usize),
-            0xFF4F => self.ppu.read(loc as usize),
             0xFF51..=0xFF55 => self.ppu.read(loc as usize),
-            0xFF68..=0xFF6B => self.ppu.read(loc as usize),
             0x8000..=0x9FFF => self.ppu.read(loc as usize),
+            0xFE00..=0xFE9F => self.ppu.read(loc as usize),
 
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize],
             0xC000..=0xDFFF => self.wram[(loc - 0xC000) as usize],
@@ -102,10 +101,9 @@ impl MemoryBus {
             0xFF10..=0xFF3F => self.apu.write(loc, value),
 
             0xFF40..=0xFF4B => self.ppu.write(loc as usize, value),
-            0xFF4F => self.ppu.write(loc as usize, value),
             0xFF51..=0xFF55 => self.ppu.write(loc as usize, value),
-            0xFF68..=0xFF6B => self.ppu.write(loc as usize, value),
             0x8000..=0x9FFF => self.ppu.write(loc as usize, value),
+            0xFE00..=0xFE9F => self.ppu.write(loc as usize, value),
 
             0xC000..=0xDFFF => self.wram[(loc - 0xC000) as usize] = value,
             0xE000..=0xFDFF => {

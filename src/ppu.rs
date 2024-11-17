@@ -85,15 +85,15 @@ impl Ppu {
     pub fn read(&mut self, loc: usize) -> u8 {
         match loc {
             0x8000..=0x9FFF => {
-                if self.state == State::Mode1 {
+                if self.state != State::Mode3 {
                     self.vram[loc - 0x8000]
                 } else {
                     0xFF
                 }
             }
             0xFE00..=0xFE9F => {
-                if self.state == State::Mode0 || self.state == State::Mode1 {
-                    self.oam[loc - 0x8FFF]
+                if self.state == State::Mode0 || self.state == State::Mode1 && true {
+                    self.oam[loc - 0xFE00]
                 } else {
                     0xFF
                 }
@@ -117,16 +117,17 @@ impl Ppu {
     pub fn write(&mut self, loc: usize, value: u8) {
         match loc {
             0x8000..=0x9FFF => {
-                if self.state == State::Mode1 {
+                if true {
+                    //if self.state != State::Mode3 {
                     self.vram[loc - 0x8000] = value;
                     if loc < 0x97FF {
-                        self.write_tile(loc - 0x8000);
+                        self.update_tiles(loc - 0x8000);
                     }
                 }
             }
             0xFE00..=0xFE9F => {
-                if self.state == State::Mode0 || self.state == State::Mode1 {
-                    self.oam[loc - 0x8FFF] = value
+                if self.state == State::Mode0 || self.state == State::Mode1 && true {
+                    self.oam[loc - 0xFE00] = value
                 }
             }
 
@@ -146,10 +147,10 @@ impl Ppu {
         }
     }
 
-    fn write_tile(&mut self, loc: usize) {
+    fn update_tiles(&mut self, loc: usize) {
         let normalized_loc = loc & 0xFFFE;
         let tile_loc = loc / 16;
-        let row_loc = loc % 16 / 2;
+        let row_loc = (loc % 16) / 2;
 
         let byte1 = self.vram[normalized_loc];
         let byte2 = self.vram[normalized_loc + 1];
@@ -159,8 +160,8 @@ impl Ppu {
             let msb = byte2 & mask;
             let value = match (lsb != 0, msb != 0) {
                 (false, false) => 0,
-                (false, true) => 1,
-                (true, false) => 2,
+                (true, false) => 1,
+                (false, true) => 2,
                 (true, true) => 3,
             };
             self.tiles[tile_loc][row_loc][pixel_index] = value;
@@ -188,7 +189,7 @@ impl Ppu {
 fn write_tile_in_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usize) {
     for yd in 0..8 {
         for xd in 0..8 {
-            buffer[(y + yd) * WIDTH + xd + x] = get_u32_color(tile[yd][xd]);
+            buffer[(y + yd) * DEBUG_WIDTH + xd + x] = get_u32_color(tile[yd][xd]);
         }
     }
 }
