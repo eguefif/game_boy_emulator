@@ -17,6 +17,7 @@ enum State {
     Mode1,
 }
 
+#[derive(PartialEq)]
 pub enum PpuInterrupt {
     Vblank,
     Stat,
@@ -25,8 +26,7 @@ pub enum PpuInterrupt {
 
 pub struct Ppu {
     x: u8,
-    y: u8,
-    interrupt: PpuInterrupt,
+    pub interrupt: PpuInterrupt,
     state: State,
     dot: u16,
     debug_tiles: [u32; RESOLUTION + 1],
@@ -51,7 +51,6 @@ impl Ppu {
     pub fn new() -> Ppu {
         Ppu {
             x: 0,
-            y: 0,
             dot: 0,
             state: State::Mode2,
             debug_tiles: [0; RESOLUTION + 1],

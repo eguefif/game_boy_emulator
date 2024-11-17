@@ -7,7 +7,7 @@ use crate::cpu::interrupt::Interrupt;
 use crate::cpu::registers::{combine, split_u16};
 use crate::cpu::timer::Timer;
 use crate::joypad::Joypad;
-use crate::ppu::Ppu;
+use crate::ppu::{Ppu, PpuInterrupt};
 
 const VRAM_SIZE: u16 = 0x9FFF - 0x8000 + 1;
 const HRAM_SIZE: u16 = 0xFFFE - 0xFF80 + 1;
@@ -145,6 +145,14 @@ impl MemoryBus {
             self.interrupt.require_timer();
         }
         self.ppu.step();
+        if self.ppu.interrupt != PpuInterrupt::None {
+            if self.ppu.interrupt == PpuInterrupt::Vblank {
+                self.interrupt.require_vblank();
+            } else {
+                self.interrupt.require_stat();
+            }
+            self.ppu.interrupt = PpuInterrupt::None;
+        }
     }
 
     pub fn fetch_next_word(&mut self) -> u16 {
