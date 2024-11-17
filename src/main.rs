@@ -54,12 +54,13 @@ fn handle_exit(window: &mut Window) {
 fn get_window() -> Window {
     let mut window = Window::new(
         "Gameboy",
-        500,
-        (500.0 * RESOLUTION) as usize,
+        750,
+        (750.0 * RESOLUTION) as usize,
         WindowOptions::default(),
     )
     .expect("Error while creating window");
     window.topmost(true);
+    window.set_position(755, 20);
     window.set_background_color(255, 0, 0);
     window
 }
@@ -70,13 +71,13 @@ fn get_debug_window() -> Option<Window> {
     }
     let mut window = Window::new(
         "Debug gameboy",
-        500,
-        500 * RESOLUTION_DEBUG as usize,
+        750,
+        750 * RESOLUTION_DEBUG as usize,
         WindowOptions::default(),
     )
     .expect("Error while creating window");
     window.topmost(true);
-    window.set_position(20, 20);
+    window.set_position(0, 20);
     window.set_background_color(255, 255, 255);
     Some(window)
 }
