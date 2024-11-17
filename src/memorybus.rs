@@ -144,6 +144,7 @@ impl MemoryBus {
         if self.timer.handle_timer() {
             self.interrupt.require_timer();
         }
+        self.ppu.step();
     }
 
     pub fn fetch_next_word(&mut self) -> u16 {

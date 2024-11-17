@@ -8,7 +8,28 @@ const WIDTH: usize = 144;
 
 type Tile = [[u8; 8]; 8];
 
+pub mod state_handler;
+
+#[derive(PartialEq)]
+enum State {
+    Mode2,
+    Mode3,
+    Mode0,
+    Mode1,
+}
+
+pub enum PpuInterrupt {
+    Vblank,
+    Stat,
+    None,
+}
+
 pub struct Ppu {
+    x: u8,
+    y: u8,
+    interrupt: PpuInterrupt,
+    state: State,
+    dot: u16,
     debug_tiles: [u32; RESOLUTION + 1],
     tiles_ram: [u8; TILES_SIZE],
     tiles: [Tile; 384],
@@ -32,6 +53,10 @@ pub struct Ppu {
 impl Ppu {
     pub fn new() -> Ppu {
         Ppu {
+            x: 0,
+            y: 0,
+            dot: 0,
+            state: State::Mode2,
             debug_tiles: [0; RESOLUTION + 1],
             tiles_ram: [0; TILES_SIZE],
             tiles: [[[0; 8]; 8]; 384],
@@ -50,7 +75,13 @@ impl Ppu {
             bgp: 0,
             obp0: 0,
             obp1: 0,
+            interrupt: PpuInterrupt::None,
         }
+    }
+
+    pub fn step(&mut self) {
+        self.update_state();
+        self.run_ppu();
     }
 
     pub fn read(&mut self, loc: usize) -> u8 {

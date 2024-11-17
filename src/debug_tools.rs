@@ -4,7 +4,7 @@ use crate::{cpu::registers::combine, cpu::Cpu};
 
 pub const DEBUG_GRAPHIC: bool = true;
 const TEST_ROM: bool = false;
-const DEBUG_MODE: bool = false;
+const DEBUG_MODE: bool = true;
 const DEBUG_STOP: bool = false;
 static mut TEST_ROM_MESSAGE: String = String::new();
 static mut STOP_CYCLE: u128 = 0;
