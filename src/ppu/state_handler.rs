@@ -17,13 +17,17 @@ impl Ppu {
         } else if self.state == Mode0 && self.dot % 456 == 0 {
             if self.ly < 144 {
                 self.state = Mode2;
+                self.x = 0;
                 self.set_lcd_stat(Mode2);
             } else {
                 self.state = Mode1;
+                self.x = 0;
                 self.set_lcd_stat(Mode1);
                 self.interrupt = Vblank
             }
-        } else if self.state == Mode1 && self.dot % 456 == 0 && self.ly == 0 {
+        } else if self.state == Mode1 && self.ly > 153 {
+            self.dot = 0;
+            self.ly = 0;
             self.state = Mode2;
             self.set_lcd_stat(Mode2);
         }

@@ -9,6 +9,10 @@ type Tile = [[u8; 8]; 8];
 
 pub mod state_handler;
 
+pub const DEBUG_WIDTH: usize = 256;
+pub const DEBUG_HEIGHT: usize = 192;
+const DEBUG_BUFFER: usize = DEBUG_WIDTH * DEBUG_HEIGHT;
+
 #[derive(PartialEq)]
 enum State {
     Mode2,
@@ -28,8 +32,8 @@ pub struct Ppu {
     x: u8,
     pub interrupt: PpuInterrupt,
     state: State,
-    dot: u16,
-    debug_tiles: [u32; 500 * 500],
+    dot: u32,
+    debug_tiles: [u32; DEBUG_BUFFER],
     vram: [u8; VRAM_SIZE],
     tiles: [Tile; 384],
     oam: [u8; OAM_SIZE],
@@ -53,7 +57,7 @@ impl Ppu {
             x: 0,
             dot: 0,
             state: State::Mode2,
-            debug_tiles: [0; 500 * 500],
+            debug_tiles: [0; DEBUG_BUFFER],
             vram: [0; VRAM_SIZE],
             tiles: [[[0; 8]; 8]; 384],
             oam: [0; OAM_SIZE],
@@ -155,8 +159,8 @@ impl Ppu {
             let msb = byte2 & mask;
             let value = match (lsb != 0, msb != 0) {
                 (false, false) => 0,
-                (true, false) => 1,
-                (false, true) => 2,
+                (false, true) => 1,
+                (true, false) => 2,
                 (true, true) => 3,
             };
             self.tiles[tile_loc][row_loc][pixel_index] = value;
@@ -164,16 +168,16 @@ impl Ppu {
     }
 
     pub fn get_tiles_memory(&mut self) -> &[u32] {
-        let mut y = 0;
-        let mut x = 0;
+        let mut y: usize = 0;
+        let mut x: usize = 0;
         for tile in self.tiles.iter() {
             write_tile_in_buffer(tile, &mut self.debug_tiles, x, y);
             x += 8;
-            if x >= 500 {
+            if x >= DEBUG_WIDTH {
                 x = 0;
                 y += 8
             }
-            if y >= 500 {
+            if y >= DEBUG_HEIGHT {
                 break;
             }
         }
@@ -181,21 +185,20 @@ impl Ppu {
     }
 }
 
-fn write_tile_in_buffer(tile: &Tile, buffer: &mut [u32], x: u16, y: u16) {
+fn write_tile_in_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usize) {
     for yd in 0..8 {
         for xd in 0..8 {
-            buffer[(y + yd) as usize * WIDTH + xd + x as usize] =
-                get_u32_color(tile[yd as usize][xd]);
+            buffer[(y + yd) * WIDTH + xd + x] = get_u32_color(tile[yd][xd]);
         }
     }
 }
 
 fn get_u32_color(value: u8) -> u32 {
     match value {
-        0b00 => from_u8_rgb(15, 56, 15),
-        0b01 => from_u8_rgb(48, 98, 48),
-        0b10 => from_u8_rgb(139, 172, 15),
-        0b11 => from_u8_rgb(155, 188, 15),
+        0b00 => from_u8_rgb(15, 15, 15),
+        0b01 => from_u8_rgb(75, 75, 75),
+        0b10 => from_u8_rgb(150, 150, 150),
+        0b11 => from_u8_rgb(255, 255, 255),
         _ => 0,
     }
 }
