@@ -7,6 +7,7 @@ use crate::cpu::interrupt::Interrupt;
 use crate::cpu::registers::{combine, split_u16};
 use crate::cpu::timer::Timer;
 use crate::joypad::Joypad;
+use crate::ppu::Ppu;
 
 const VRAM_SIZE: u16 = 0x9FFF - 0x8000 + 1;
 const HRAM_SIZE: u16 = 0xFFFE - 0xFF80 + 1;
@@ -15,6 +16,7 @@ const MEM_MAX: u16 = 0xFFFF;
 
 pub struct MemoryBus {
     apu: Apu,
+    pub ppu: Ppu,
     timer: Timer,
     cartridge: Cartridge,
     pub joypad: Joypad,
@@ -31,6 +33,7 @@ pub struct MemoryBus {
 impl MemoryBus {
     pub fn new() -> MemoryBus {
         MemoryBus {
+            ppu: Ppu::new(),
             apu: Apu::new(),
             cartridge: Cartridge::new(),
             timer: Timer::new(),
@@ -60,8 +63,13 @@ impl MemoryBus {
             0xFF07 => self.timer.tac,
             0xFF0F => self.interrupt.iflag,
 
+            0xFF40..=0xFF4B => self.ppu.read(loc as usize),
+            0xFF4F => self.ppu.read(loc as usize),
+            0xFF51..=0xFF55 => self.ppu.read(loc as usize),
+            0xFF68..=0xFF6B => self.ppu.read(loc as usize),
+            0x8000..=0x9FFF => self.ppu.read(loc as usize),
+
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize],
-            0x8000..=0x9FFF => self.vram[(loc - 0x8000) as usize],
             0xC000..=0xDFFF => self.wram[(loc - 0xC000) as usize],
             0xE000..=0xFDFF => {
                 let new_loc = loc & (WRAM_SIZE - 1);
@@ -93,7 +101,12 @@ impl MemoryBus {
 
             0xFF10..=0xFF3F => self.apu.write(loc, value),
 
-            0x8000..=0x9FFF => self.vram[(loc - 0x8000) as usize] = value,
+            0xFF40..=0xFF4B => self.ppu.write(loc as usize, value),
+            0xFF4F => self.ppu.write(loc as usize, value),
+            0xFF51..=0xFF55 => self.ppu.write(loc as usize, value),
+            0xFF68..=0xFF6B => self.ppu.write(loc as usize, value),
+            0x8000..=0x9FFF => self.ppu.write(loc as usize, value),
+
             0xC000..=0xDFFF => self.wram[(loc - 0xC000) as usize] = value,
             0xE000..=0xFDFF => {
                 let new_loc = loc & (WRAM_SIZE - 1);

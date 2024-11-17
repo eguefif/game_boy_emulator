@@ -27,6 +27,10 @@ fn main() {
         joypad.update(&window);
         cpu.joypad = joypad.clone();
         cpu.step();
+        if let Some(ref mut w) = debug_window {
+            let mem = cpu.memory.ppu.get_tiles_memory();
+            w.update_with_buffer(mem, 160, 144).unwrap();
+        }
     }
 }
 
