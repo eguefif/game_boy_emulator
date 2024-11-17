@@ -1,6 +1,6 @@
 use debug_tools::DEBUG_GRAPHIC;
 use joypad::Joypad;
-use minifb::{Window, WindowOptions};
+use minifb::{Key, Window, WindowOptions};
 
 use crate::cpu::Cpu;
 
@@ -31,6 +31,13 @@ fn main() {
             let mem = cpu.memory.ppu.get_tiles_memory();
             w.update_with_buffer(mem, 160, 144).unwrap();
         }
+        handle_exit(&mut window);
+    }
+}
+
+fn handle_exit(window: &mut Window) {
+    if window.is_key_down(Key::Escape) || !window.is_open() {
+        std::process::exit(0);
     }
 }
 
