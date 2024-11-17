@@ -155,7 +155,7 @@ impl Ppu {
         let byte1 = self.vram[normalized_loc];
         let byte2 = self.vram[normalized_loc + 1];
         for pixel_index in 0..8 {
-            let mask = 1 << pixel_index;
+            let mask = 1 << (7 - pixel_index);
             let lsb = byte1 & mask;
             let msb = byte2 & mask;
             let value = match (lsb != 0, msb != 0) {
