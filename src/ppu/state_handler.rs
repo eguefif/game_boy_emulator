@@ -1,5 +1,5 @@
 use crate::ppu::Ppu;
-use crate::ppu::PpuInterrupt::{None, Stat, Vblank};
+use crate::ppu::PpuInterrupt::Vblank;
 use crate::ppu::State;
 use crate::ppu::State::{Mode0, Mode1, Mode2, Mode3};
 
@@ -12,16 +12,21 @@ impl Ppu {
             self.state = Mode3;
             self.set_lcd_stat(Mode3);
         } else if self.state == Mode3 && self.dot % 456 >= (80 + 172) {
+            if self.stat & 0b_0000_1000 > 0 {
+                self.interrupt = PpuInterrupt::Stat
+            }
             self.state = Mode0;
             self.set_lcd_stat(Mode0);
         } else if self.state == Mode0 && self.dot % 456 == 0 {
+            self.x = 0;
             if self.ly < 144 {
+                if self.stat & 0b_0010_0000 > 0 {
+                    self.interrupt = PpuInterrupt::Stat
+                }
                 self.state = Mode2;
-                self.x = 0;
                 self.set_lcd_stat(Mode2);
             } else {
                 self.state = Mode1;
-                self.x = 0;
                 self.set_lcd_stat(Mode1);
                 self.interrupt = Vblank
             }
@@ -38,10 +43,14 @@ impl Ppu {
         match new_state {
             Mode3 => self.stat &= 0b00,
             Mode1 => self.stat &= 0b01,
-            Mode2 => self.stat &= 0b10,
-            Mode0 => self.stat &= 0b11,
+            Mode2 => self.stat &= 0b11,
+            Mode0 => self.stat &= 0b10,
         }
-        match self.stat {
+        self.handle_interrupt(before_stat);
+    }
+
+    fn handle_interrupt(&mut self, before_stat: u8) {
+        match self.stat & 0b_1111_1000 {
             0b_0010_0000 => {
                 if before_stat == 0 && (self.stat & 0b10) > 0 {
                     self.interrupt = PpuInterrupt::Stat;
@@ -80,6 +89,7 @@ impl Ppu {
             _ => {}
         }
     }
+
     fn check_lcy_y(&mut self) {
         if self.lyc == self.ly {
             let before = self.stat & 0b_0000_0111;

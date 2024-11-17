@@ -16,7 +16,7 @@ pub const WIDTH: usize = 160;
 pub const HEIGHT: usize = 144;
 const VIDEO_BUFFER: usize = WIDTH * HEIGHT;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 enum State {
     Mode2,
     Mode3,
@@ -128,6 +128,11 @@ impl Ppu {
                     if loc < 0x97FF {
                         self.update_tiles(loc - 0x8000);
                     }
+                } else {
+                    println!(
+                        "Try to access vram. Mode: {:?}, dot: {:?}, stat: {:b}, lcdc: {:b}",
+                        self.state, self.dot, self.stat, self.lcdc
+                    );
                 }
             }
             0xFE00..=0xFE9F => {

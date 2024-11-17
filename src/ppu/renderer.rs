@@ -42,7 +42,12 @@ impl Ppu {
     }
 
     fn get_bg_index(&mut self) -> usize {
-        ((self.scy + self.ly) / 8) as usize * 32 + ((self.scx + self.x) / 8) as usize
+        let index = ((self.scy + self.ly) / 8) as usize * 32 + ((self.scx + self.x) / 8) as usize;
+        if self.lcdc & 0b_0000_1000 > 0 {
+            self.vram[0x1800 + index] as usize
+        } else {
+            self.vram[0x1c00 + index] as usize
+        }
     }
 
     fn render_window(&mut self) {}
