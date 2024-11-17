@@ -4,11 +4,13 @@ use minifb::{Window, WindowOptions};
 
 use crate::cpu::Cpu;
 
+pub mod apu;
 pub mod cartridge;
 pub mod cpu;
 pub mod debug_tools;
 pub mod joypad;
 pub mod memorybus;
+pub mod ppu;
 
 const RESOLUTION: f64 = 144.0 / 160.0;
 

@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(clippy::new_without_default)]
 
+use crate::apu::Apu;
 use crate::cartridge::Cartridge;
 use crate::cpu::interrupt::Interrupt;
 use crate::cpu::registers::{combine, split_u16};
@@ -13,6 +14,7 @@ const WRAM_SIZE: u16 = 0xDFFF - 0xC000 + 1;
 const MEM_MAX: u16 = 0xFFFF;
 
 pub struct MemoryBus {
+    apu: Apu,
     timer: Timer,
     cartridge: Cartridge,
     pub joypad: Joypad,
@@ -29,6 +31,7 @@ pub struct MemoryBus {
 impl MemoryBus {
     pub fn new() -> MemoryBus {
         MemoryBus {
+            apu: Apu::new(),
             cartridge: Cartridge::new(),
             timer: Timer::new(),
             joypad: Joypad::new(),
@@ -46,6 +49,8 @@ impl MemoryBus {
     pub fn read(&mut self, at: u16) -> u8 {
         let loc = at & MEM_MAX;
         match loc {
+            0..=0x7FFF => self.cartridge.read(loc),
+
             0xFF00 => self.joypad.get_joypad(),
             0xFF01 => self.debug[0],
             0xFF02 => self.debug[1],
@@ -54,9 +59,9 @@ impl MemoryBus {
             0xFF06 => self.timer.tma,
             0xFF07 => self.timer.tac,
             0xFF0F => self.interrupt.iflag,
-            0..=0x7FFF => self.cartridge.read(loc),
-            0x8000..=0x9FFF => self.vram[(loc - 0x8000) as usize],
+
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize],
+            0x8000..=0x9FFF => self.vram[(loc - 0x8000) as usize],
             0xC000..=0xDFFF => self.wram[(loc - 0xC000) as usize],
             0xE000..=0xFDFF => {
                 let new_loc = loc & (WRAM_SIZE - 1);
@@ -74,6 +79,8 @@ impl MemoryBus {
         let loc = at & MEM_MAX;
 
         match loc {
+            0..=0x7FFF => self.cartridge.write(loc, value),
+
             0xFF00 => self.joypad.set_joypad(value),
             0xFF01 => self.debug[0] = value,
             0xFF02 => self.debug[1] = value,
@@ -82,9 +89,11 @@ impl MemoryBus {
             0xFF06 => self.timer.tma = value,
             0xFF07 => self.timer.tac = value | 0xF8,
             0xFF0F => self.interrupt.set_iflag(value),
-            0..=0x7FFF => self.cartridge.write(loc, value),
-            0x8000..=0x9FFF => self.vram[(loc - 0x8000) as usize] = value,
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize] = value,
+
+            0xFF10..=0xFF3F => self.apu.write(loc, value),
+
+            0x8000..=0x9FFF => self.vram[(loc - 0x8000) as usize] = value,
             0xC000..=0xDFFF => self.wram[(loc - 0xC000) as usize] = value,
             0xE000..=0xFDFF => {
                 let new_loc = loc & (WRAM_SIZE - 1);
