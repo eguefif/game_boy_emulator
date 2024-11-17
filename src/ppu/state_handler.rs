@@ -71,7 +71,7 @@ impl Ppu {
                 }
             }
             Mode3 => {
-                self.x += 1;
+                //self.x += 1;
             }
             _ => {}
         }

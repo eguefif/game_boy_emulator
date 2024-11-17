@@ -58,13 +58,8 @@ fn get_debug_window() -> Option<Window> {
     if !DEBUG_GRAPHIC {
         return None;
     }
-    let mut window = Window::new(
-        "Debug gameboy",
-        500,
-        (500.0 * RESOLUTION) as usize,
-        WindowOptions::default(),
-    )
-    .expect("Error while creating window");
+    let mut window = Window::new("Debug gameboy", 500, 500, WindowOptions::default())
+        .expect("Error while creating window");
     window.topmost(true);
     window.set_position(20, 20);
     window.set_background_color(255, 0, 0);

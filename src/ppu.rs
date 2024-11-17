@@ -29,7 +29,7 @@ pub struct Ppu {
     pub interrupt: PpuInterrupt,
     state: State,
     dot: u16,
-    debug_tiles: [u32; RESOLUTION + 1],
+    debug_tiles: [u32; 500 * 500],
     vram: [u8; VRAM_SIZE],
     tiles: [Tile; 384],
     oam: [u8; OAM_SIZE],
@@ -53,7 +53,7 @@ impl Ppu {
             x: 0,
             dot: 0,
             state: State::Mode2,
-            debug_tiles: [0; RESOLUTION + 1],
+            debug_tiles: [0; 500 * 500],
             vram: [0; VRAM_SIZE],
             tiles: [[[0; 8]; 8]; 384],
             oam: [0; OAM_SIZE],
@@ -115,7 +115,9 @@ impl Ppu {
             0x8000..=0x9FFF => {
                 if self.state == State::Mode1 {
                     self.vram[loc - 0x8000] = value;
-                    self.write_tile(loc - 0x8000);
+                    if loc < 0x97FF {
+                        self.write_tile(loc - 0x8000);
+                    }
                 }
             }
             0xFE00..=0xFE9F => {
@@ -167,19 +169,19 @@ impl Ppu {
         for tile in self.tiles.iter() {
             write_tile_in_buffer(tile, &mut self.debug_tiles, x, y);
             x += 8;
-            y += 8;
-            if x >= 144 {
+            if x >= 500 {
                 x = 0;
+                y += 8
             }
-            if y >= 160 {
-                y = 0;
+            if y >= 500 {
+                break;
             }
         }
         &self.debug_tiles
     }
 }
 
-fn write_tile_in_buffer(tile: &Tile, buffer: &mut [u32], x: u8, y: u8) {
+fn write_tile_in_buffer(tile: &Tile, buffer: &mut [u32], x: u16, y: u16) {
     for yd in 0..8 {
         for xd in 0..8 {
             buffer[(y + yd) as usize * WIDTH + xd + x as usize] =
