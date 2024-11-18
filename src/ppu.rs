@@ -90,14 +90,15 @@ impl Ppu {
     pub fn read(&mut self, loc: usize) -> u8 {
         match loc {
             0x8000..=0x9FFF => {
-                if self.state != State::Mode3 {
+                if self.state != State::Mode3 || !self.is_ldc_active() {
                     self.vram[loc - 0x8000]
                 } else {
                     0xFF
                 }
             }
             0xFE00..=0xFE9F => {
-                if self.state == State::Mode0 || self.state == State::Mode1 {
+                if self.state == State::Mode0 || self.state == State::Mode1 || !self.is_ldc_active()
+                {
                     self.oam[loc - 0xFE00]
                 } else {
                     0xFF
@@ -122,21 +123,16 @@ impl Ppu {
     pub fn write(&mut self, loc: usize, value: u8) {
         match loc {
             0x8000..=0x9FFF => {
-                //if true {
-                if self.state != State::Mode3 {
+                if self.state != State::Mode3 || !self.is_ldc_active() {
                     self.vram[loc - 0x8000] = value;
                     if loc < 0x97FF {
                         self.update_tiles(loc - 0x8000);
                     }
-                } else {
-                    println!(
-                        "Try to access vram. Mode: {:?}, dot: {:?}, stat: {:b}, lcdc: {:b}",
-                        self.state, self.dot, self.stat, self.lcdc
-                    );
                 }
             }
             0xFE00..=0xFE9F => {
-                if self.state == State::Mode0 || self.state == State::Mode1 {
+                if self.state == State::Mode0 || self.state == State::Mode1 || !self.is_ldc_active()
+                {
                     self.oam[loc - 0xFE00] = value
                 }
             }
@@ -155,6 +151,10 @@ impl Ppu {
             0xFF4B => self.wx = value,
             _ => {}
         }
+    }
+
+    fn is_ldc_active(&mut self) -> bool {
+        self.lcdc & 0b1000_0000 >= 1
     }
 
     fn update_tiles(&mut self, loc: usize) {
