@@ -4,10 +4,6 @@ use crate::ppu::State::{Mode0, Mode1, Mode2, Mode3};
 
 impl Ppu {
     pub fn update_state(&mut self) {
-        //if !self.is_lcd_active() {
-        //    return;
-        //}
-        self.dot += 4;
         println!(
             "mode: {:?}, dot {} stat: {:b}, x {}, y {}",
             self.state, self.dot, self.stat, self.x, self.ly
@@ -40,7 +36,6 @@ impl Ppu {
             }
         } else if self.state == Mode1 && self.dot % 70224 == 0 {
             self.ly = 0;
-            self.dot = 0;
             self.state = Mode2;
             self.set_lcd_stat(Mode2);
         }
@@ -68,7 +63,7 @@ impl Ppu {
         match self.state {
             Mode0 => {}
             Mode1 => {
-                if self.dot % 456 == 0 {
+                if self.dot % 456 == 0 && self.ly < 154 {
                     self.ly += 1;
                 }
             }

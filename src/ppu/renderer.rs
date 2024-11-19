@@ -7,13 +7,13 @@ const TILEMAP_SIZE: u16 = 32 * 32;
 impl Ppu {
     pub fn render(&mut self) {
         for _ in 0..10 {
-            //if self.is_bg_window_active() {
-            if self.is_window() {
-                self.render_window();
-            } else {
-                self.render_bg();
+            if self.is_bg_window_active() {
+                if self.is_window() {
+                    self.render_window();
+                } else {
+                    self.render_bg();
+                }
             }
-            //}
             self.x += 1;
         }
     }
@@ -21,16 +21,16 @@ impl Ppu {
     fn render_bg(&mut self) {
         let index = self.get_tile_map_index();
         let tile = self.tiles[index];
-        //if self.is_lcd_active() {
-        write_tile_in_video_buffer(
-            &tile,
-            &mut self.video_buffer,
-            self.x as usize,
-            self.ly as usize,
-        );
-        //} else {
-        //    write_white_in_video_buffer(&mut self.video_buffer, self.x as usize, self.ly as usize);
-        //}
+        if self.is_lcd_active() {
+            write_tile_in_video_buffer(
+                &tile,
+                &mut self.video_buffer,
+                self.x as usize,
+                self.ly as usize,
+            );
+        } else {
+            write_white_in_video_buffer(&mut self.video_buffer, self.x as usize, self.ly as usize);
+        }
     }
 
     fn get_tile_map_index(&mut self) -> usize {

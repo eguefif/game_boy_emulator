@@ -87,6 +87,13 @@ impl Ppu {
     }
 
     pub fn step(&mut self) {
+        if self.dot > 70224 {
+            self.dot = 0;
+        }
+        self.dot += 4;
+        if !self.is_lcd_active() {
+            return;
+        }
         self.update_state();
         self.run_ppu();
     }
@@ -128,7 +135,6 @@ impl Ppu {
         match loc {
             0x8000..=0x9FFF => {
                 if self.state != State::Mode3 || !self.is_lcd_active() {
-                    println!("Writing in vram");
                     self.vram[loc - 0x8000] = value;
                     if loc < 0x97FF {
                         self.update_tiles(loc - 0x8000);
@@ -136,7 +142,6 @@ impl Ppu {
                 }
             }
             0xFE00..=0xFE9F => {
-                println!("Writing in oam");
                 if self.state == State::Mode0 || self.state == State::Mode1 || !self.is_lcd_active()
                 {
                     self.oam[loc - 0xFE00] = value
@@ -160,17 +165,16 @@ impl Ppu {
     }
 
     fn write_stat(&mut self, value: u8) {
-        println!("Write in stat {}", value);
         let before = self.stat & 0b0000_0011;
-        self.stat = value;
-        self.stat |= before;
+        self.stat = (value & 0b1111_1100) | before;
     }
 
     fn write_lcdc(&mut self, value: u8) {
-        //if self.state == State::Mode1 && (value & 0b_1000_0000) > 0 {
-        //    return;
-        //}
-        println!("Write in lcdc {:b}", value);
+        if self.state == State::Mode1 && (value & 0b_1000_0000) == 0 && self.stat & 0b_1000_0000 > 0
+        {
+            println!("forbiden tried to turn of lcd");
+            return;
+        }
         self.lcdc = value;
     }
 

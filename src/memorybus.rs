@@ -76,7 +76,7 @@ impl MemoryBus {
             }
             0xFFFF => self.interrupt.ie,
             _ => {
-                println!("Read: memory not handled: {:x}", loc);
+                //println!("Read: memory not handled: {:x}", loc);
                 0
             }
         }
@@ -111,7 +111,7 @@ impl MemoryBus {
                 self.wram[(new_loc - 0xC000) as usize] = value;
             }
             0xFFFF => self.interrupt.set_ie(value),
-            _ => println!("Write: memory not handled: {:x}", loc),
+            _ => {} //println!("Write: memory not handled: {:x}", loc),
         }
     }
 
