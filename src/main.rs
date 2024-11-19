@@ -1,6 +1,6 @@
 use std::time::Instant;
 
-use debug_tools::DEBUG_GRAPHIC;
+use debug_tools::DEBUG_SPRITES;
 use joypad::Joypad;
 use minifb::{Key, Window, WindowOptions};
 use ppu::{DEBUG_HEIGHT, DEBUG_WIDTH, HEIGHT, WIDTH};
@@ -68,7 +68,7 @@ fn get_window() -> Window {
 }
 
 fn get_debug_window() -> Option<Window> {
-    if !DEBUG_GRAPHIC {
+    if !DEBUG_SPRITES {
         return None;
     }
     let mut window = Window::new(

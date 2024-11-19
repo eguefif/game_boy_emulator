@@ -39,34 +39,11 @@ impl Ppu {
     }
 
     fn set_lcd_stat(&mut self, new_state: State) {
-        let before_stat = self.stat & 0b_0000_0111;
         match new_state {
             Mode3 => self.stat &= 0b00,
             Mode1 => self.stat &= 0b01,
             Mode2 => self.stat &= 0b11,
             Mode0 => self.stat &= 0b10,
-        }
-        self.handle_interrupt(before_stat);
-    }
-
-    fn handle_interrupt(&mut self, before_stat: u8) {
-        match self.stat & 0b_1111_1000 {
-            0b_0010_0000 => {
-                if before_stat == 0 && (self.stat & 0b10) > 0 {
-                    self.interrupt = PpuInterrupt::Stat;
-                }
-            }
-            0b_0001_0000 => {
-                if before_stat == 0 && (self.stat & 0b1) > 0 {
-                    self.interrupt = PpuInterrupt::Stat;
-                }
-            }
-            0b_0000_1000 => {
-                if before_stat == 0 && (self.stat & 0b11) > 0 {
-                    self.interrupt = PpuInterrupt::Stat;
-                }
-            }
-            _ => {}
         }
     }
 

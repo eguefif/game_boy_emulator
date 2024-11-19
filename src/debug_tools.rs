@@ -2,10 +2,11 @@ use std::io::stdin;
 
 use crate::{cpu::registers::combine, cpu::Cpu};
 
-pub const DEBUG_GRAPHIC: bool = true;
+pub const DEBUG_SPRITES: bool = true;
+pub const DEBUG_RENDERING: bool = true;
 const TEST_ROM: bool = false;
-const DEBUG_MODE: bool = false;
-const DEBUG_STOP: bool = false;
+const DEBUG_MODE: bool = true;
+const DEBUG_STOP: bool = true;
 static mut TEST_ROM_MESSAGE: String = String::new();
 static mut STOP_CYCLE: u128 = 0;
 
@@ -13,16 +14,18 @@ pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
     if TEST_ROM {
         handle_test_rom(cpu);
     }
-    if !DEBUG_MODE {
-        return;
+    if DEBUG_RENDERING {
+        println!("{}", cpu.memory.ppu)
     }
-    display_opcode(opcode, cpu);
-    if DEBUG_STOP && should_stop(cpu.memory.cycle) {
-        let mut input = String::new();
-        stdin().read_line(&mut input).unwrap();
-        if !input.trim().is_empty() {
-            unsafe {
-                STOP_CYCLE = input.trim().parse().unwrap();
+    if DEBUG_MODE {
+        display_opcode(opcode, cpu);
+        if DEBUG_STOP && should_stop(cpu.memory.cycle) {
+            let mut input = String::new();
+            stdin().read_line(&mut input).unwrap();
+            if !input.trim().is_empty() {
+                unsafe {
+                    STOP_CYCLE = input.trim().parse().unwrap();
+                }
             }
         }
     }

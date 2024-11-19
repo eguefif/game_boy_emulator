@@ -1,12 +1,14 @@
 #![allow(clippy::new_without_default)]
 
+pub mod renderer;
+pub mod state_handler;
+
+use std::fmt;
+
 const VRAM_SIZE: usize = 0x9FFF - 0x8000 + 1;
 const OAM_SIZE: usize = 0xFE9F - 0xFE00 + 1;
 
 type Tile = [[u8; 8]; 8];
-
-pub mod renderer;
-pub mod state_handler;
 
 pub const DEBUG_WIDTH: usize = 256;
 pub const DEBUG_HEIGHT: usize = 192;
@@ -24,7 +26,7 @@ enum State {
     Mode1,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum PpuInterrupt {
     Vblank,
     Stat,
@@ -221,4 +223,99 @@ fn get_u32_color(value: u8) -> u32 {
 fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
     let (r, g, b) = (r as u32, g as u32, b as u32);
     (r << 16) | (g << 8) | b
+}
+
+impl fmt::Display for Ppu {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Ppu: | LCDC: {:<30} | Stat: {:<20} | x: {:3} | Ly: {:3} | Lcy: {:3}",
+            get_lcdc(self.lcdc),
+            get_stat(self.stat),
+            self.x,
+            self.ly,
+            self.lyc
+        )
+    }
+}
+
+fn get_lcdc(lcdc: u8) -> String {
+    let mut retval = String::new();
+    if (lcdc & 0b1000_0000) > 0 {
+        retval.push_str("LCD active. ");
+    } else {
+        retval.push_str("LCD inactive! ");
+    }
+    if (lcdc & 0b0000_0001) > 0 {
+        retval.push_str("Window/BG: enable, ");
+    } else {
+        retval.push_str("Window/BG disable! ");
+    }
+
+    if (lcdc & 0b0010_0000) > 0 {
+        retval.push_str("Window active: ");
+    }
+    {
+        retval.push_str("Window inactive: ");
+    }
+
+    if (lcdc & 0b0100_0000) > 0 {
+        retval.push_str("W9C00 ");
+    } else {
+        retval.push_str("W9800 ");
+    }
+
+    if (lcdc & 0b0001_0000) > 0 {
+        retval.push_str("Addr mode: 8000(abs), ");
+    } else {
+        retval.push_str("Addr mode: 8800(sign), ");
+    }
+
+    if (lcdc & 0b0000_1000) > 0 {
+        retval.push_str("BG: 9C00, ");
+    } else {
+        retval.push_str("BG: 9800, ");
+    }
+
+    if (lcdc & 0b0000_0010) > 0 {
+        retval.push_str("Object enable, ");
+    } else {
+        retval.push_str("Object disable, ");
+    }
+    if (lcdc & 0b0000_0100) > 0 {
+        retval.push_str("Object size: 8, ");
+    } else {
+        retval.push_str("Object size: 16, ");
+    }
+    retval
+}
+
+fn get_stat(stat: u8) -> String {
+    let mut retval = String::new();
+
+    if (stat & 0b0100_0000) > 0 {
+        retval.push_str("LYC ");
+    }
+    if (stat & 0b0010_0000) > 0 {
+        retval.push_str("M2 ");
+    }
+    if (stat & 0b0001_0000) > 0 {
+        retval.push_str("M1 ");
+    }
+    if (stat & 0b0000_1000) > 0 {
+        retval.push_str("M0 ");
+    }
+    if (stat & 0b0000_0100) > 0 {
+        retval.push_str("LYC == LY ");
+    } else {
+        retval.push_str("LYC != LY ");
+    }
+    match stat & 0b_0000_0011 {
+        0b00 => retval.push_str("M3"),
+        0b01 => retval.push_str("M1"),
+        0b10 => retval.push_str("M0"),
+        0b11 => retval.push_str("M2"),
+        _ => {}
+    }
+    retval
 }
