@@ -35,9 +35,8 @@ pub enum PpuInterrupt {
 
 pub struct Ppu {
     x: u8,
-    pub interrupt: PpuInterrupt,
     state: State,
-    dot: u32,
+    pub dot: u32,
     pub video_buffer: [u32; VIDEO_BUFFER],
     debug_tiles: [u32; DEBUG_BUFFER],
     vram: [u8; VRAM_SIZE],
@@ -55,11 +54,15 @@ pub struct Ppu {
     bgp: u8,
     obp0: u8,
     obp1: u8,
+    pub vblank: bool,
+    pub stat_int: bool,
 }
 
 impl Ppu {
     pub fn new() -> Ppu {
         Ppu {
+            vblank: false,
+            stat_int: false,
             x: 0,
             dot: 0,
             state: State::Mode2,
@@ -72,7 +75,7 @@ impl Ppu {
             lcdc: 0,
             ly: 0,
             lyc: 0,
-            stat: 0,
+            stat: 0b0000_0010,
             scy: 0,
             scx: 0,
             wy: 0,
@@ -80,7 +83,6 @@ impl Ppu {
             bgp: 0,
             obp0: 0,
             obp1: 0,
-            interrupt: PpuInterrupt::None,
         }
     }
 
@@ -126,6 +128,7 @@ impl Ppu {
         match loc {
             0x8000..=0x9FFF => {
                 if self.state != State::Mode3 || !self.is_lcd_active() {
+                    println!("Writing in vram");
                     self.vram[loc - 0x8000] = value;
                     if loc < 0x97FF {
                         self.update_tiles(loc - 0x8000);
@@ -133,14 +136,15 @@ impl Ppu {
                 }
             }
             0xFE00..=0xFE9F => {
+                println!("Writing in oam");
                 if self.state == State::Mode0 || self.state == State::Mode1 || !self.is_lcd_active()
                 {
                     self.oam[loc - 0xFE00] = value
                 }
             }
 
-            0xFF40 => self.lcdc = value,
-            0xFF41 => self.stat = value & 0b_0111_1100,
+            0xFF40 => self.write_lcdc(value),
+            0xFF41 => self.write_stat(value),
             0xFF42 => self.scy = value,
             0xFF43 => self.scx = value,
             0xFF44 => self.ly = value,
@@ -153,6 +157,21 @@ impl Ppu {
             0xFF4B => self.wx = value,
             _ => {}
         }
+    }
+
+    fn write_stat(&mut self, value: u8) {
+        println!("Write in stat {}", value);
+        let before = self.stat & 0b0000_0011;
+        self.stat = value;
+        self.stat |= before;
+    }
+
+    fn write_lcdc(&mut self, value: u8) {
+        //if self.state == State::Mode1 && (value & 0b_1000_0000) > 0 {
+        //    return;
+        //}
+        println!("Write in lcdc {:b}", value);
+        self.lcdc = value;
     }
 
     pub fn is_lcd_active(&mut self) -> bool {
@@ -176,8 +195,8 @@ impl Ppu {
             let msb = byte2 & mask;
             let value = match (lsb != 0, msb != 0) {
                 (false, false) => 0,
-                (true, false) => 1,
-                (false, true) => 2,
+                (true, false) => 2,
+                (false, true) => 1,
                 (true, true) => 3,
             };
             self.tiles[tile_loc][row_loc][pixel_index] = value;
@@ -216,15 +235,15 @@ fn write_tile_in_debug_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usiz
 
 pub fn get_u32_color(value: u8) -> u32 {
     match value {
-        0b00 => from_u8_rgb(15, 15, 15),
-        0b01 => from_u8_rgb(75, 75, 75),
-        0b10 => from_u8_rgb(150, 150, 150),
+        0b00 => from_u8_rgb(10, 10, 10),
+        0b01 => from_u8_rgb(130, 130, 130),
+        0b10 => from_u8_rgb(210, 210, 210),
         0b11 => from_u8_rgb(255, 255, 255),
         _ => 0,
     }
 }
 
-fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
+pub fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
     let (r, g, b) = (r as u32, g as u32, b as u32);
     (r << 16) | (g << 8) | b
 }
@@ -233,7 +252,7 @@ impl fmt::Display for Ppu {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Ppu: | LCDC: {:<30} | Stat: {:<10} | x: {:3} | scx: {:3} | Ly: {:3} | scy: {:3} | Lcy: {:3}",
+            "Ppu: | LCDC: {:<30} | Stat: {:<10} | x: {:3} | scx: {:3} | Ly: {:3} | scy: {:3} | Lcy: {:3} | Mode: {:?} | dot: {}",
             get_lcdc(self.lcdc),
             get_stat(self.stat),
             self.x,
@@ -241,6 +260,8 @@ impl fmt::Display for Ppu {
             self.ly,
             self.scy,
             self.lyc,
+            self.state,
+            self.dot,
         )
     }
 }
@@ -317,10 +338,10 @@ fn get_stat(stat: u8) -> String {
         retval.push_str("LYC != LY ");
     }
     match stat & 0b_0000_0011 {
-        0b00 => retval.push_str("M3"),
+        0b11 => retval.push_str("M3"),
         0b01 => retval.push_str("M1"),
-        0b10 => retval.push_str("M0"),
-        0b11 => retval.push_str("M2"),
+        0b00 => retval.push_str("M0"),
+        0b10 => retval.push_str("M2"),
         _ => {}
     }
     retval

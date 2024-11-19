@@ -143,13 +143,13 @@ impl MemoryBus {
             self.interrupt.require_timer();
         }
         self.ppu.step();
-        if self.ppu.interrupt != PpuInterrupt::None {
-            if self.ppu.interrupt == PpuInterrupt::Vblank {
-                self.interrupt.require_vblank();
-            } else {
-                self.interrupt.require_stat();
-            }
-            self.ppu.interrupt = PpuInterrupt::None;
+        if self.ppu.vblank {
+            self.interrupt.require_vblank();
+            self.ppu.vblank = false;
+        }
+        if self.ppu.stat_int {
+            self.interrupt.require_stat();
+            self.ppu.stat_int = false;
         }
     }
 

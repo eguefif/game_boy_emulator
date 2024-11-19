@@ -12,8 +12,7 @@ pub fn run_gameboy(window: &mut Window, debug_window: &mut Option<Window>) {
         cpu.joypad = joypad.clone();
         let start = Instant::now();
         cpu.step();
-        if cpu.memory.cycle >= 17476 {
-            cpu.memory.cycle = 0;
+        if cpu.memory.cycle % 17556 == 0 {
             render(&mut cpu, window, debug_window);
             while start.elapsed().as_millis() < 17 {}
         }

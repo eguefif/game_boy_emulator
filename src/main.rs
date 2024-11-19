@@ -3,8 +3,6 @@ use debug_tools::DEBUG_SPRITES;
 use gameboy::run_gameboy;
 use minifb::{Scale, ScaleMode, Window, WindowOptions};
 
-const RESOLUTION_DEBUG: f64 = DEBUG_WIDTH as f64 / DEBUG_HEIGHT as f64;
-
 pub mod apu;
 pub mod cartridge;
 pub mod cpu;
@@ -28,16 +26,16 @@ fn get_window() -> Window {
         borderless: false,
         transparency: false,
         title: true,
-        resize: false,
-        scale: Scale::FitScreen,
+        resize: true,
+        scale: Scale::X4,
         scale_mode: ScaleMode::Stretch,
         topmost: true,
         none: false,
     };
     let mut window =
-        Window::new("Gameboy", 160, 144, options).expect("Error while creating window");
+        Window::new("Gameboy", WIDTH, HEIGHT, options).expect("Error while creating window");
     window.topmost(true);
-    window.set_position(755, 20);
+    window.set_position(1025, 20);
     window
 }
 
@@ -45,13 +43,18 @@ fn get_debug_window() -> Option<Window> {
     if !DEBUG_SPRITES {
         return None;
     }
-    let mut window = Window::new(
-        "Debug gameboy",
-        750,
-        750 * RESOLUTION_DEBUG as usize,
-        WindowOptions::default(),
-    )
-    .expect("Error while creating window");
+    let options = WindowOptions {
+        borderless: false,
+        transparency: false,
+        title: true,
+        resize: false,
+        scale: Scale::X4,
+        scale_mode: ScaleMode::Stretch,
+        topmost: true,
+        none: false,
+    };
+    let mut window = Window::new("Debug gameboy", DEBUG_WIDTH, DEBUG_HEIGHT, options)
+        .expect("Error while creating window");
     window.topmost(true);
     window.set_position(0, 20);
     window.set_background_color(255, 255, 255);
