@@ -92,14 +92,14 @@ impl Ppu {
     pub fn read(&mut self, loc: usize) -> u8 {
         match loc {
             0x8000..=0x9FFF => {
-                if self.state != State::Mode3 || !self.is_ldc_active() {
+                if self.state != State::Mode3 || !self.is_lcd_active() {
                     self.vram[loc - 0x8000]
                 } else {
                     0xFF
                 }
             }
             0xFE00..=0xFE9F => {
-                if self.state == State::Mode0 || self.state == State::Mode1 || !self.is_ldc_active()
+                if self.state == State::Mode0 || self.state == State::Mode1 || !self.is_lcd_active()
                 {
                     self.oam[loc - 0xFE00]
                 } else {
@@ -125,7 +125,7 @@ impl Ppu {
     pub fn write(&mut self, loc: usize, value: u8) {
         match loc {
             0x8000..=0x9FFF => {
-                if self.state != State::Mode3 || !self.is_ldc_active() {
+                if self.state != State::Mode3 || !self.is_lcd_active() {
                     self.vram[loc - 0x8000] = value;
                     if loc < 0x97FF {
                         self.update_tiles(loc - 0x8000);
@@ -133,7 +133,7 @@ impl Ppu {
                 }
             }
             0xFE00..=0xFE9F => {
-                if self.state == State::Mode0 || self.state == State::Mode1 || !self.is_ldc_active()
+                if self.state == State::Mode0 || self.state == State::Mode1 || !self.is_lcd_active()
                 {
                     self.oam[loc - 0xFE00] = value
                 }
@@ -155,8 +155,12 @@ impl Ppu {
         }
     }
 
-    fn is_ldc_active(&mut self) -> bool {
+    pub fn is_lcd_active(&mut self) -> bool {
         self.lcdc & 0b1000_0000 >= 1
+    }
+
+    pub fn is_bg_window_active(&mut self) -> bool {
+        self.lcdc & 0b0000_0001 >= 1
     }
 
     fn update_tiles(&mut self, loc: usize) {

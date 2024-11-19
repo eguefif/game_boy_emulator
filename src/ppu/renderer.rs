@@ -5,10 +5,12 @@ use super::write_tile_in_buffer;
 impl Ppu {
     pub fn render(&mut self) {
         for _ in 0..4 {
-            if self.is_window() {
-                self.render_window();
-            } else {
-                self.render_bg();
+            if self.is_bg_window_active() {
+                if self.is_window() {
+                    self.render_window();
+                } else {
+                    self.render_bg();
+                }
             }
             self.x += 1;
             if self.x >= 144 {
