@@ -1,9 +1,8 @@
-use crate::ppu::{DEBUG_HEIGHT, DEBUG_WIDTH};
+use crate::ppu::{DEBUG_HEIGHT, DEBUG_WIDTH, HEIGHT, WIDTH};
 use debug_tools::DEBUG_SPRITES;
 use gameboy::run_gameboy;
-use minifb::{Window, WindowOptions};
+use minifb::{Scale, ScaleMode, Window, WindowOptions};
 
-const RESOLUTION: f64 = 160.0 / 144.0;
 const RESOLUTION_DEBUG: f64 = DEBUG_WIDTH as f64 / DEBUG_HEIGHT as f64;
 
 pub mod apu;
@@ -25,16 +24,20 @@ fn main() {
     run_gameboy(&mut window, &mut debug_window);
 }
 fn get_window() -> Window {
-    let mut window = Window::new(
-        "Gameboy",
-        750,
-        (750.0 * RESOLUTION) as usize,
-        WindowOptions::default(),
-    )
-    .expect("Error while creating window");
+    let options = WindowOptions {
+        borderless: false,
+        transparency: false,
+        title: true,
+        resize: false,
+        scale: Scale::FitScreen,
+        scale_mode: ScaleMode::Stretch,
+        topmost: true,
+        none: false,
+    };
+    let mut window =
+        Window::new("Gameboy", 160, 144, options).expect("Error while creating window");
     window.topmost(true);
     window.set_position(755, 20);
-    window.set_background_color(255, 0, 0);
     window
 }
 

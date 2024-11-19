@@ -188,7 +188,7 @@ impl Ppu {
         let mut y: usize = 0;
         let mut x: usize = 0;
         for tile in self.tiles.iter() {
-            write_tile_in_buffer(tile, &mut self.debug_tiles, x, y);
+            write_tile_in_debug_buffer(tile, &mut self.debug_tiles, x, y);
             x += 8;
             if x >= DEBUG_WIDTH {
                 x = 0;
@@ -206,7 +206,7 @@ impl Ppu {
     }
 }
 
-pub fn write_tile_in_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usize) {
+fn write_tile_in_debug_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usize) {
     for yd in 0..8 {
         for xd in 0..8 {
             buffer[(y + yd) * DEBUG_WIDTH + xd + x] = get_u32_color(tile[yd][xd]);
@@ -214,7 +214,7 @@ pub fn write_tile_in_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usize)
     }
 }
 
-fn get_u32_color(value: u8) -> u32 {
+pub fn get_u32_color(value: u8) -> u32 {
     match value {
         0b00 => from_u8_rgb(15, 15, 15),
         0b01 => from_u8_rgb(75, 75, 75),
@@ -233,12 +233,14 @@ impl fmt::Display for Ppu {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Ppu: | LCDC: {:<30} | Stat: {:<20} | x: {:3} | Ly: {:3} | Lcy: {:3}",
+            "Ppu: | LCDC: {:<30} | Stat: {:<10} | x: {:3} | scx: {:3} | Ly: {:3} | scy: {:3} | Lcy: {:3}",
             get_lcdc(self.lcdc),
             get_stat(self.stat),
             self.x,
+            self.scx,
             self.ly,
-            self.lyc
+            self.scy,
+            self.lyc,
         )
     }
 }

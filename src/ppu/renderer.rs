@@ -1,6 +1,8 @@
-use crate::ppu::Ppu;
+use crate::ppu::{Ppu, VRAM_SIZE};
 
-use super::write_tile_in_buffer;
+use crate::ppu::{get_u32_color, Tile, WIDTH};
+
+const TILEMAP_SIZE: u16 = 32 * 32;
 
 impl Ppu {
     pub fn render(&mut self) {
@@ -20,19 +22,25 @@ impl Ppu {
     }
 
     fn render_bg(&mut self) {
+        let index = self.get_tile_map_index();
+        let tile = self.tiles[index];
+        write_tile_in_video_buffer(
+            &tile,
+            &mut self.video_buffer,
+            self.x as usize,
+            self.ly as usize,
+        );
+    }
+
+    fn get_tile_map_index(&mut self) -> usize {
         let base_index = self.get_tile_data_base_index();
-        let index;
         if base_index == 0 {
             let offset = self.get_bg_index();
-            index = base_index + offset;
+            base_index + offset
         } else {
             let offset = self.get_bg_index() as i8;
-            index = (base_index + offset as u8 as usize) % 384;
+            base_index + offset as u8 as usize
         }
-        let tile = self.tiles[index];
-        let x = (self.scx.wrapping_add(self.x) % 8) as usize;
-        let y = (self.scy.wrapping_add(self.ly) % 8) as usize;
-        write_tile_in_buffer(&tile, &mut self.video_buffer, x, y);
     }
 
     fn get_tile_data_base_index(&mut self) -> usize {
@@ -44,9 +52,12 @@ impl Ppu {
     }
 
     fn get_bg_index(&mut self) -> usize {
-        let index = (self.scy.wrapping_add(self.ly) / 8) as usize * 32
-            + (self.scx.wrapping_add(self.x) / 8) as usize;
-        if self.lcdc & 0b_0000_1000 > 0 {
+        let index = (wrapping_tilemap_add(self.scy, self.ly) / 8) as usize * 32
+            + (wrapping_tilemap_add(self.scx, self.x) / 8) as usize;
+        if 0x1800 + index >= VRAM_SIZE || 0x1c00 + index >= VRAM_SIZE {
+            return 0;
+        }
+        if self.lcdc & 0b_0000_1000 == 0 {
             self.vram[0x1800 + index] as usize
         } else {
             self.vram[0x1c00 + index] as usize
@@ -58,4 +69,16 @@ impl Ppu {
     fn is_window(&mut self) -> bool {
         false
     }
+}
+
+fn wrapping_tilemap_add(x1: u8, x2: u8) -> u16 {
+    if x1 as u16 + x2 as u16 > TILEMAP_SIZE {
+        x1 as u16 + x2 as u16 - TILEMAP_SIZE
+    } else {
+        x1 as u16 + x2 as u16
+    }
+}
+
+pub fn write_tile_in_video_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usize) {
+    buffer[y * WIDTH + x] = get_u32_color(tile[y % 8][x % 8]);
 }
