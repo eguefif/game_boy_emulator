@@ -57,7 +57,7 @@ impl Ppu {
         if self.is_bg_tile_data1() {
             self.vram[0x1800 + index] as usize
         } else {
-            self.vram[0x1c00 + index] as usize
+            self.vram[0x1000 + index] as usize
         }
     }
 

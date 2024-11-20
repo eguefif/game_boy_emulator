@@ -1,12 +1,21 @@
+use std::io;
+
 use crate::{cpu::registers::combine, cpu::Cpu};
 
-pub const DEBUG_SPRITES: bool = true;
+pub const DEBUG_SPRITES: bool = false;
 pub const DEBUG_RENDERING: bool = true;
+const PAUSE: bool = true;
 const TEST_ROM: bool = false;
-const DEBUG_MODE: bool = false;
+const DEBUG_MODE: bool = true;
 static mut TEST_ROM_MESSAGE: String = String::new();
+static mut COUNTER: u64 = 0;
 
 pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
+    unsafe {
+        if COUNTER as u128 > cpu.memory.cycle {
+            return;
+        }
+    }
     if TEST_ROM {
         handle_test_rom(cpu);
     }
@@ -15,6 +24,18 @@ pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
     }
     if DEBUG_MODE {
         display_opcode(opcode, cpu);
+    }
+    if PAUSE {
+        let mut buf = String::new();
+        io::stdin().read_line(&mut buf).unwrap();
+        unsafe {
+            if buf.trim().is_empty() {
+                COUNTER = cpu.memory.cycle as u64 + 1;
+            } else {
+                let tmp: u64 = buf.trim().parse().unwrap();
+                COUNTER = cpu.memory.cycle as u64 + tmp;
+            }
+        }
     }
 }
 

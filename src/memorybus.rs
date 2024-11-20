@@ -42,7 +42,7 @@ impl MemoryBus {
             vram: [0; VRAM_SIZE as usize],
             hram: [0; HRAM_SIZE as usize],
             wram: [0; WRAM_SIZE as usize],
-            pc: 0x100,
+            pc: 0x000,
             ie: 0,
             cycle: 0,
             debug: [0; 2],
