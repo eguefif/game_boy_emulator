@@ -1,5 +1,5 @@
 use crate::joypad::Joypad;
-use crate::ppu::{DEBUG_HEIGHT, DEBUG_WIDTH, HEIGHT, WIDTH};
+use crate::ppu::config::{DEBUG_HEIGHT, DEBUG_WIDTH, HEIGHT, WIDTH};
 use minifb::{Key, Window};
 use std::time::Instant;
 

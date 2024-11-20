@@ -1,6 +1,9 @@
-use crate::ppu::{from_u8_rgb, Ppu, VRAM_SIZE};
+use crate::ppu::{Ppu, VRAM_SIZE};
 
-use crate::ppu::{get_u32_color, Tile, WIDTH};
+use crate::ppu::config::WIDTH;
+use crate::ppu::{get_u32_color, Tile};
+
+use crate::ppu::color::from_u8_rgb;
 
 const TILEMAP_SIZE: u16 = 32 * 32;
 

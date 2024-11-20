@@ -1,61 +1,46 @@
 #![allow(clippy::new_without_default)]
 
+pub mod color;
+pub mod config;
+pub mod lcdc;
 pub mod renderer;
+pub mod stat;
 pub mod state_handler;
 
+use config::State;
+use config::{Tile, DEBUG_BUFFER, DEBUG_HEIGHT, DEBUG_WIDTH, OAM_SIZE, VIDEO_BUFFER, VRAM_SIZE};
+
+use crate::ppu::color::get_u32_color;
 use std::fmt;
 
-const VRAM_SIZE: usize = 0x9FFF - 0x8000 + 1;
-const OAM_SIZE: usize = 0xFE9F - 0xFE00 + 1;
-
-type Tile = [[u8; 8]; 8];
-
-pub const DEBUG_WIDTH: usize = 256;
-pub const DEBUG_HEIGHT: usize = 192;
-const DEBUG_BUFFER: usize = DEBUG_WIDTH * DEBUG_HEIGHT;
-
-pub const WIDTH: usize = 160;
-pub const HEIGHT: usize = 144;
-const VIDEO_BUFFER: usize = WIDTH * HEIGHT;
-
-#[derive(PartialEq, Debug)]
-enum State {
-    Mode2,
-    Mode3,
-    Mode0,
-    Mode1,
-}
-
-#[derive(PartialEq, Debug)]
-pub enum PpuInterrupt {
-    Vblank,
-    Stat,
-    None,
-}
-
 pub struct Ppu {
-    x: u8,
-    state: State,
+    pub vblank: bool,
+    pub stat_int: bool,
     pub dot: u32,
     pub video_buffer: [u32; VIDEO_BUFFER],
+
+    x: u8,
+    ly: u8,
+    lyc: u8,
+    state: State,
+
     debug_tiles: [u32; DEBUG_BUFFER],
     vram: [u8; VRAM_SIZE],
     tiles: [Tile; 384],
     oam: [u8; OAM_SIZE],
+
     dma: u8,
     lcdc: u8,
-    ly: u8,
-    lyc: u8,
     stat: u8,
+
     scy: u8,
     scx: u8,
     wy: u8,
     wx: u8,
+
     bgp: u8,
     obp0: u8,
     obp1: u8,
-    pub vblank: bool,
-    pub stat_int: bool,
 }
 
 impl Ppu {
@@ -63,23 +48,28 @@ impl Ppu {
         Ppu {
             vblank: false,
             stat_int: false,
-            x: 0,
-            dot: 0,
-            state: State::Mode2,
-            debug_tiles: [0; DEBUG_BUFFER],
             video_buffer: [0; VIDEO_BUFFER],
+            dot: 0,
+
+            state: State::Mode2,
+            ly: 0,
+            lyc: 0,
+            x: 0,
+
+            debug_tiles: [0; DEBUG_BUFFER],
             vram: [0; VRAM_SIZE],
             tiles: [[[0; 8]; 8]; 384],
             oam: [0; OAM_SIZE],
+
             dma: 0,
             lcdc: 0,
-            ly: 0,
-            lyc: 0,
             stat: 0b0000_0010,
+
             scy: 0,
             scx: 0,
             wy: 0,
             wx: 0,
+
             bgp: 0,
             obp0: 0,
             obp1: 0,
@@ -137,7 +127,7 @@ impl Ppu {
                 if self.state != State::Mode3 || !self.is_lcd_active() {
                     self.vram[loc - 0x8000] = value;
                     if loc < 0x97FF {
-                        self.update_tiles(loc - 0x8000);
+                        self.write_tiles(loc - 0x8000);
                     }
                 }
             }
@@ -164,29 +154,7 @@ impl Ppu {
         }
     }
 
-    fn write_stat(&mut self, value: u8) {
-        let before = self.stat & 0b0000_0011;
-        self.stat = (value & 0b1111_1100) | before;
-    }
-
-    fn write_lcdc(&mut self, value: u8) {
-        if self.state == State::Mode1 && (value & 0b_1000_0000) == 0 && self.stat & 0b_1000_0000 > 0
-        {
-            println!("forbiden tried to turn of lcd");
-            return;
-        }
-        self.lcdc = value;
-    }
-
-    pub fn is_lcd_active(&mut self) -> bool {
-        self.lcdc & 0b1000_0000 >= 1
-    }
-
-    pub fn is_bg_window_active(&mut self) -> bool {
-        self.lcdc & 0b0000_0001 >= 1
-    }
-
-    fn update_tiles(&mut self, loc: usize) {
+    fn write_tiles(&mut self, loc: usize) {
         let normalized_loc = loc & 0xFFFE;
         let tile_loc = loc / 16;
         let row_loc = (loc % 16) / 2;
@@ -207,6 +175,10 @@ impl Ppu {
         }
     }
 
+    pub fn get_video_buffer(&mut self) -> &[u32] {
+        &self.video_buffer
+    }
+
     pub fn get_tiles_memory(&mut self) -> &[u32] {
         let mut y: usize = 0;
         let mut x: usize = 0;
@@ -223,10 +195,6 @@ impl Ppu {
         }
         &self.debug_tiles
     }
-
-    pub fn get_video_buffer(&mut self) -> &[u32] {
-        &self.video_buffer
-    }
 }
 
 fn write_tile_in_debug_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usize) {
@@ -236,22 +204,6 @@ fn write_tile_in_debug_buffer(tile: &Tile, buffer: &mut [u32], x: usize, y: usiz
         }
     }
 }
-
-pub fn get_u32_color(value: u8) -> u32 {
-    match value {
-        0b00 => from_u8_rgb(10, 10, 10),
-        0b01 => from_u8_rgb(130, 130, 130),
-        0b10 => from_u8_rgb(210, 210, 210),
-        0b11 => from_u8_rgb(255, 255, 255),
-        _ => 0,
-    }
-}
-
-pub fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
-    let (r, g, b) = (r as u32, g as u32, b as u32);
-    (r << 16) | (g << 8) | b
-}
-
 impl fmt::Display for Ppu {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(

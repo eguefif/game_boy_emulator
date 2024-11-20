@@ -1,4 +1,4 @@
-use crate::ppu::{DEBUG_HEIGHT, DEBUG_WIDTH, HEIGHT, WIDTH};
+use crate::ppu::config::{DEBUG_HEIGHT, DEBUG_WIDTH, HEIGHT, WIDTH};
 use debug_tools::DEBUG_SPRITES;
 use gameboy::run_gameboy;
 use minifb::{Scale, ScaleMode, Window, WindowOptions};
