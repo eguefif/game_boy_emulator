@@ -3,10 +3,6 @@ use crate::ppu::State::{Mode0, Mode1, Mode2, Mode3};
 
 impl Ppu {
     pub fn update_state(&mut self) {
-        println!(
-            "mode: {:?}, dot {} stat: {:b}, x {}, y {}",
-            self.state, self.dot, self.stat, self.x, self.ly
-        );
         if self.state == Mode2 && self.dot % 456 >= 80 {
             self.state = Mode3;
             self.update_stat(Mode3);

@@ -225,33 +225,33 @@ impl fmt::Display for Ppu {
 fn get_lcdc(lcdc: u8) -> String {
     let mut retval = String::new();
     if (lcdc & 0b1000_0000) > 0 {
-        retval.push_str("LCD active. ");
+        retval.push_str("LCD 1 ");
     } else {
-        retval.push_str("LCD inactive! ");
+        retval.push_str("LCD 0 ");
     }
     if (lcdc & 0b0000_0001) > 0 {
-        retval.push_str("Window/BG: enable, ");
+        retval.push_str("W/BG 1 ");
     } else {
-        retval.push_str("Window/BG disable! ");
+        retval.push_str("W/BG 0 ");
     }
 
     if (lcdc & 0b0010_0000) > 0 {
-        retval.push_str("Window active: ");
+        retval.push_str("W 1");
     }
     {
-        retval.push_str("Window inactive: ");
+        retval.push_str("W 0 ");
     }
 
     if (lcdc & 0b0100_0000) > 0 {
-        retval.push_str("W9C00 ");
+        retval.push_str("W: W9C00 ");
     } else {
-        retval.push_str("W9800 ");
+        retval.push_str("W: W9800 ");
     }
 
     if (lcdc & 0b0001_0000) > 0 {
-        retval.push_str("Addr mode: 8000(abs), ");
+        retval.push_str("Mode: abs, ");
     } else {
-        retval.push_str("Addr mode: 8800(sign), ");
+        retval.push_str("Mode: sign, ");
     }
 
     if (lcdc & 0b0000_1000) > 0 {
@@ -261,14 +261,14 @@ fn get_lcdc(lcdc: u8) -> String {
     }
 
     if (lcdc & 0b0000_0010) > 0 {
-        retval.push_str("Object enable, ");
+        retval.push_str("Obj 1, ");
     } else {
-        retval.push_str("Object disable, ");
+        retval.push_str("Obj 0, ");
     }
     if (lcdc & 0b0000_0100) > 0 {
-        retval.push_str("Object size: 8, ");
+        retval.push_str("size 8, ");
     } else {
-        retval.push_str("Object size: 16, ");
+        retval.push_str("size 16, ");
     }
     retval
 }
