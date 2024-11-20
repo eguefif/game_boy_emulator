@@ -7,9 +7,11 @@ pub const DEBUG_WIDTH: usize = 256;
 pub const DEBUG_HEIGHT: usize = 192;
 pub const DEBUG_BUFFER: usize = DEBUG_WIDTH * DEBUG_HEIGHT;
 
-pub const WIDTH: usize = 160;
-pub const HEIGHT: usize = 144;
+pub const WIDTH: usize = 32 * 8;
+pub const HEIGHT: usize = 32 * 8;
 pub const VIDEO_BUFFER: usize = WIDTH * HEIGHT;
+
+pub const TILEMAP_SIZE: u16 = 32 * 32;
 
 #[derive(PartialEq, Debug)]
 pub enum State {

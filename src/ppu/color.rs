@@ -1,3 +1,16 @@
+use crate::ppu::Ppu;
+
+impl Ppu {
+    pub fn get_color_from_bg_palette(&mut self, value: u8) -> u8 {
+        match value & 0b0000_0011 {
+            0 => self.bgp & 0b0000_0011,
+            1 => (self.bgp >> 2) & 0b0000_0011,
+            2 => (self.bgp >> 4) & 0b0000_0011,
+            3 => (self.bgp >> 6) & 0b0000_0011,
+            _ => 0,
+        }
+    }
+}
 pub fn get_u32_color(value: u8) -> u32 {
     match value {
         0b00 => from_u8_rgb(10, 10, 10),

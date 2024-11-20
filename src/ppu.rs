@@ -110,14 +110,17 @@ impl Ppu {
             0xFF41 => self.stat,
             0xFF42 => self.scy,
             0xFF43 => self.scx,
+            0xFF4A => self.wy,
+            0xFF4B => self.wx,
+
             0xFF44 => self.ly,
             0xFF45 => self.lyc,
+
             0xFF46 => self.dma,
+
             0xFF47 => self.bgp,
             0xFF48 => self.obp0,
             0xFF49 => self.obp1,
-            0xFF4A => self.wy,
-            0xFF4B => self.wx,
             _ => 0xFF,
         }
     }
@@ -142,14 +145,15 @@ impl Ppu {
             0xFF41 => self.write_stat(value),
             0xFF42 => self.scy = value,
             0xFF43 => self.scx = value,
-            0xFF44 => self.ly = value,
+            0xFF4A => self.wy = value,
+            0xFF4B => self.wx = value,
+            0xFF44 => {}
             0xFF45 => self.lyc = value,
             0xFF46 => self.dma = value,
+
             0xFF47 => self.bgp = value,
             0xFF48 => self.obp0 = value,
             0xFF49 => self.obp1 = value,
-            0xFF4A => self.wy = value,
-            0xFF4B => self.wx = value,
             _ => {}
         }
     }

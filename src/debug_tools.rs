@@ -1,7 +1,7 @@
 use crate::{cpu::registers::combine, cpu::Cpu};
 
 pub const DEBUG_SPRITES: bool = true;
-pub const DEBUG_RENDERING: bool = false;
+pub const DEBUG_RENDERING: bool = true;
 const TEST_ROM: bool = false;
 const DEBUG_MODE: bool = false;
 static mut TEST_ROM_MESSAGE: String = String::new();
