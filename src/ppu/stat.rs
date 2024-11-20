@@ -9,7 +9,6 @@ impl Ppu {
     }
 
     pub fn update_stat(&mut self, new_state: State) {
-        //let before = self.stat;
         match new_state {
             Mode3 => {
                 self.stat |= 0b11;
@@ -24,10 +23,15 @@ impl Ppu {
             }
             Mode0 => self.stat &= 0b1111_1100,
         }
-        //self.handle_stat_interrupt(before, value);
+        self.handle_stat_interrupt(new_state);
     }
 
-    //fn handle_stat_interrupt(&mut self, before: u8, value: u8){
-    //    
-    //}
+    fn handle_stat_interrupt(&mut self, new_state: State) {
+        if (self.stat & 0x20 > 0 && new_state == Mode2)
+            || (self.stat & 0b_0001_0000 > 0 && new_state == Mode1)
+            || (self.stat & 0b_0000_1000 > 0 && new_state == Mode0)
+        {
+            self.stat_int = true;
+        }
+    }
 }

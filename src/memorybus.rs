@@ -15,18 +15,18 @@ const WRAM_SIZE: u16 = 0xDFFF - 0xC000 + 1;
 const MEM_MAX: u16 = 0xFFFF;
 
 pub struct MemoryBus {
-    apu: Apu,
     pub ppu: Ppu,
-    timer: Timer,
-    cartridge: Cartridge,
     pub joypad: Joypad,
     pub interrupt: Interrupt,
+    pub pc: u16,
+    pub cycle: u128,
+    apu: Apu,
+    timer: Timer,
+    cartridge: Cartridge,
     vram: [u8; VRAM_SIZE as usize],
     hram: [u8; HRAM_SIZE as usize],
     wram: [u8; WRAM_SIZE as usize],
     ie: u8,
-    pub pc: u16,
-    pub cycle: u128,
     debug: [u8; 2],
 }
 

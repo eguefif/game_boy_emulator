@@ -13,26 +13,24 @@ impl Ppu {
             self.state = Mode0;
             self.update_stat(Mode0);
         } else if self.state == Mode0 && self.dot % 456 == 0 {
-            self.x = 0;
-            if self.ly < 143 {
-                self.ly += 1;
-                if self.stat & 0b_0010_0000 > 0 {
-                    self.stat_int = true;
-                }
-                self.state = Mode2;
-                self.update_stat(Mode2);
-            } else {
-                self.state = Mode1;
-                self.update_stat(Mode1);
-                if (self.stat & 0b_0001_0000) > 0 {
-                    self.stat_int = true;
-                }
-                self.vblank = true;
-            }
+            self.move_from0();
         } else if self.state == Mode1 && self.dot % 70224 == 0 {
             self.ly = 0;
             self.state = Mode2;
             self.update_stat(Mode2);
+        }
+    }
+
+    fn move_from0(&mut self) {
+        self.x = 0;
+        if self.ly < 143 {
+            self.ly += 1;
+            self.state = Mode2;
+            self.update_stat(Mode2);
+        } else {
+            self.state = Mode1;
+            self.update_stat(Mode1);
+            self.vblank = true;
         }
     }
 
