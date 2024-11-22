@@ -14,7 +14,7 @@ pub fn run_gameboy(window: &mut Window, debug_window: &mut Option<Window>) {
         cpu.step();
         if cpu.memory.cycle % 17556 == 0 {
             render(&mut cpu, window, debug_window);
-            while start.elapsed().as_millis() < 17 {}
+            while start.elapsed().as_millis() < 300 {}
         }
         handle_exit(window);
     }

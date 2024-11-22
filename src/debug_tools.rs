@@ -2,9 +2,9 @@ use std::io;
 
 use crate::{cpu::registers::combine, cpu::Cpu};
 
-pub const DEBUG_SPRITES: bool = false;
-pub const DEBUG_RENDERING: bool = true;
-const PAUSE: bool = true;
+pub const DEBUG_SPRITES: bool = true;
+pub const DEBUG_RENDERING: bool = false;
+const PAUSE: bool = false;
 const TEST_ROM: bool = false;
 const DEBUG_MODE: bool = true;
 static mut TEST_ROM_MESSAGE: String = String::new();

@@ -81,9 +81,6 @@ impl Ppu {
             self.dot = 0;
         }
         self.dot += 4;
-        if !self.is_lcd_active() {
-            return;
-        }
         self.update_state();
         self.run_ppu();
     }

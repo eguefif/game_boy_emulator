@@ -23,22 +23,23 @@ impl Ppu {
 
     fn move_from0(&mut self) {
         self.x = 0;
-        if self.ly < 143 {
-            self.ly += 1;
-            self.state = Mode2;
-            self.update_stat(Mode2);
-        } else {
+        self.ly += 1;
+        if self.ly == 144 {
             self.state = Mode1;
             self.update_stat(Mode1);
             self.vblank = true;
+        } else {
+            self.state = Mode2;
+            self.update_stat(Mode2);
         }
     }
 
     pub fn run_ppu(&mut self) {
+        println!("Ly: {}", self.ly);
         self.check_lcy_y();
         match self.state {
             Mode1 => {
-                if self.dot % 456 == 0 && self.ly < 154 {
+                if self.dot % 456 == 0 && self.ly < 154 && self.ly > 144 {
                     self.ly += 1;
                 }
             }
