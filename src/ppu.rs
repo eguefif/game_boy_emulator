@@ -77,6 +77,9 @@ impl Ppu {
     }
 
     pub fn step(&mut self) {
+        if !self.is_lcd_active() {
+            return;
+        }
         if self.dot > 70224 {
             self.dot = 0;
         }
