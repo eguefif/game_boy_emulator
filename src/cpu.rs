@@ -44,7 +44,7 @@ impl Cpu {
     }
 
     pub fn step(&mut self) {
-        self.handle_joypad();
+        //self.handle_joypad();
         let ime = self.ime;
         if self.prepare_ime {
             self.ime = !self.ime;

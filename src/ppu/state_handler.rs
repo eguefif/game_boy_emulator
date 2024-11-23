@@ -9,16 +9,17 @@ impl Ppu {
             Mode0 => {
                 if self.dot % 456 == 0 {
                     self.scanline_drawn = false;
-                    if self.ly < 144 {
+                    if self.ly < 143 {
                         self.increment_ly();
-                        self.switch_state(Mode0);
+                        self.switch_state(Mode2);
                     } else {
                         self.switch_state(Mode1);
+                        self.vblank = true;
                     }
                 }
             }
             Mode1 => {
-                if self.dot != 70224 {
+                if self.dot <= 70224 {
                     if self.dot % 456 == 0 {
                         self.increment_ly();
                     }

@@ -84,7 +84,7 @@ fn display_opcode(opcode: u8, cpu: &mut Cpu) {
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{}", cpu.reg);
     print!(" cycles: {}", cpu.memory.cycle - 1);
-    print!(" | iflag: {:0<5b}", cpu.memory.interrupt.iflag);
+    print!(" | iflag: {:0>5b}", cpu.memory.interrupt.iflag);
     //display_stack(cpu);
     println!();
 }

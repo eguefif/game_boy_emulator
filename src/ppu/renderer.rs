@@ -3,53 +3,49 @@ use crate::ppu::Ppu;
 use crate::ppu::config::{TILEMAP_SIZE, WIDTH};
 use crate::ppu::{get_u32_color, Tile};
 
-use crate::ppu::color::from_u8_rgb;
-
 impl Ppu {
     pub fn render(&mut self) {
-        //if self.is_bg_window_active() {
-        self.render_back();
-        //}
-        self.x += 8;
-    }
-
-    fn render_back(&mut self) {
-        let index = self.get_tile_map_index();
-        let tile = self.tiles[index];
-        self.write_tile_in_video_buffer(&tile, self.x as usize, self.ly as usize);
-    }
-
-    fn get_tile_map_index(&mut self) -> usize {
-        let base_index = self.get_tilemap_base_index();
-        if base_index == 0 {
-            let offset = self.get_bg_offset();
-            base_index + offset as usize
-        } else {
-            let offset = self.get_bg_offset() as i8;
-            if offset < 0 {
-                (base_index as i16 - offset as i16) as usize
-            } else {
-                base_index + offset as usize
+        if self.is_bg_window_active() {
+            self.render_back();
+            if self.is_window() {
+                self.render_window();
             }
         }
     }
 
-    fn get_tilemap_base_index(&mut self) -> usize {
-        if self.is_tiledata1() {
-            0
-        } else {
-            384 / 2
+    fn render_back(&mut self) {
+        for x in 0..(WIDTH / 8) {
+            let offset = self.get_tile_offset(x as u8);
+            let index = self.get_base_index_data(offset);
+
+            let tile = self.tiles[index];
+            self.write_tile_in_video_buffer(&tile, x, self.ly as usize);
         }
     }
 
-    fn get_bg_offset(&mut self) -> u8 {
-        let loc = (self.ly / 8) as usize * 32 + (self.x / 8) as usize;
-        if self.is_bg_tilemap2() && self.x < self.wx
-            || self.is_window_tilemap2() && self.x >= self.wx
-        {
-            self.vram[0x1800 + loc]
+    fn get_tile_offset(&mut self, x: u8) -> u8 {
+        let base = self.get_base_index();
+        let x_offset = ((self.scx / 8) + x) & 0x1F;
+        let y_offset = self.ly.wrapping_add(self.scy);
+        let offset = base + x_offset as usize + 32 * (y_offset / 8) as usize;
+        self.vram[offset]
+    }
+
+    fn get_base_index(&mut self) -> usize {
+        if self.is_bg_tilemap2() {
+            0x1c00
         } else {
-            self.vram[0x1C00 + loc]
+            0x1800
+        }
+    }
+
+    fn get_base_index_data(&mut self, offset: u8) -> usize {
+        if self.is_tiledata1() {
+            offset as usize
+        } else {
+            let tmp = 384 / 2 + offset as i8 as i16;
+            println!("offset: {}", tmp);
+            tmp as usize
         }
     }
 
@@ -57,7 +53,7 @@ impl Ppu {
         for xd in 0..8 {
             let pixel = tile[y % 8][xd];
             let color = self.get_color_from_bg_palette(pixel);
-            self.video_buffer[y * WIDTH + x + xd] = get_u32_color(color);
+            self.video_buffer[y * WIDTH + x * 8 + xd] = get_u32_color(color);
         }
     }
 
@@ -70,8 +66,4 @@ fn wrapping_tilemap_add(x1: u8, x2: u8) -> u16 {
     } else {
         x1 as u16 + x2 as u16
     }
-}
-
-pub fn write_white_in_video_buffer(buffer: &mut [u32], x: usize, y: usize) {
-    buffer[y * WIDTH + x] = from_u8_rgb(255, 255, 255);
 }

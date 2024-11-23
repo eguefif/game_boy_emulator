@@ -26,7 +26,7 @@ fn get_window() -> Window {
         borderless: false,
         transparency: false,
         title: true,
-        resize: true,
+        resize: false,
         scale: Scale::X4,
         scale_mode: ScaleMode::Stretch,
         topmost: true,
