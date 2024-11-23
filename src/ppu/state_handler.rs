@@ -4,22 +4,24 @@ use crate::ppu::State::{Mode0, Mode1, Mode2, Mode3};
 
 impl Ppu {
     pub fn run_ppu(&mut self) {
+        self.dot += 1;
         match self.state {
             Mode0 => {
                 if self.dot % 456 == 0 {
                     self.scanline_drawn = false;
                     if self.ly < 144 {
-                        self.ly += 1;
+                        self.increment_ly();
                         self.switch_state(Mode0);
-                        self.state = Mode0;
                     } else {
-                        self.state = Mode1;
+                        self.switch_state(Mode1);
                     }
                 }
             }
             Mode1 => {
                 if self.dot != 70224 {
-                    self.increment_ly()
+                    if self.dot % 456 == 0 {
+                        self.increment_ly();
+                    }
                 } else {
                     self.ly = 0;
                     self.state = Mode2;
