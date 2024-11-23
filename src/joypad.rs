@@ -14,7 +14,7 @@ pub struct Joypad {
     b: bool,
     start: bool,
     select: bool,
-    interrupt: bool,
+    pub interrupt: bool,
     pad_active: bool,
     button_active: bool,
 }
@@ -65,10 +65,9 @@ impl Joypad {
             if self.down {
                 retval &= !0b1000;
             }
-            println!("retval: {:b}", self.set_joypad_bits(!retval));
-            return self.set_joypad_bits(!retval);
+            retval = self.set_joypad_bits(retval);
+            return retval;
         } else if self.button_active {
-            println!("retval: {:b}", self.set_joypad_bits(!retval));
             if self.a {
                 retval &= !0b1;
             }
@@ -81,7 +80,8 @@ impl Joypad {
             if self.start {
                 retval &= !0b1000;
             }
-            return self.set_joypad_bits(!retval);
+            retval = self.set_joypad_bits(retval);
+            return retval;
         }
         0xFF
     }
@@ -89,63 +89,82 @@ impl Joypad {
     fn set_joypad_bits(&mut self, input: u8) -> u8 {
         let mut retval = input;
         if self.pad_active {
-            retval &= 0b_0001_0000;
+            retval |= 0b_0001_0000;
         }
         if self.button_active {
-            retval &= 0b_0010_0000;
+            retval |= 0b_0010_0000;
         }
         retval
     }
 
     pub fn update(&mut self, window: &Window) {
-        self.reset();
-        if window.is_key_down(Key::W) && !window.is_key_down(Key::S) {
+        if window.is_key_down(Key::W) {
+            //&& !window.is_key_down(Key::S) {
             if !self.top {
                 self.interrupt = true;
             }
             self.top = true;
+        } else {
+            self.top = false;
         }
-        if !window.is_key_down(Key::W) && window.is_key_down(Key::S) {
+        if !window.is_key_down(Key::W) {
+            //&& window.is_key_down(Key::S) {
             if !self.down {
                 self.interrupt = true;
             }
             self.down = true;
+        } else {
+            self.down = false;
         }
-        if window.is_key_down(Key::A) && !window.is_key_down(Key::D) {
+        if window.is_key_down(Key::A) {
+            //&& !window.is_key_down(Key::D) {
             if !self.left {
                 self.interrupt = true;
             }
             self.left = true;
+        } else {
+            self.left = false;
         }
-        if !window.is_key_down(Key::A) && window.is_key_down(Key::D) {
+        if !window.is_key_down(Key::A) {
+            //&& window.is_key_down(Key::D) {
             if !self.right {
                 self.interrupt = true;
             }
             self.right = true;
+        } else {
+            self.right = false;
         }
         if window.is_key_down(Key::J) {
             if !self.a {
                 self.interrupt = true;
             }
             self.a = true;
+        } else {
+            self.a = false;
         }
         if window.is_key_down(Key::K) {
             if !self.b {
                 self.interrupt = true;
             }
             self.b = true;
+        } else {
+            self.b = false;
         }
         if window.is_key_down(Key::U) {
             if !self.start {
                 self.interrupt = true;
             }
             self.start = true;
+        } else {
+            self.start = false;
         }
         if window.is_key_down(Key::I) {
             if !self.select {
                 self.interrupt = true;
             }
             self.select = true;
+        } else {
+            self.select = false;
         }
     }
 

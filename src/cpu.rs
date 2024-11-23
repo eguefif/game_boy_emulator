@@ -28,7 +28,6 @@ pub struct Cpu {
     ime: bool,
     prepare_ime: bool,
     halted: bool,
-    pub joypad: Joypad,
 }
 
 impl Cpu {
@@ -39,7 +38,6 @@ impl Cpu {
             prepare_ime: false,
             ime: false,
             halted: false,
-            joypad: Joypad::new(),
         }
     }
 
@@ -63,8 +61,7 @@ impl Cpu {
     }
 
     fn handle_joypad(&mut self) {
-        self.memory.joypad = self.joypad.clone();
-        if self.joypad.is_interrupt() {
+        if self.memory.joypad.is_interrupt() {
             self.memory.interrupt.require_joypad();
         }
     }
@@ -76,6 +73,9 @@ impl Cpu {
     }
 
     fn handle_interrupt(&mut self) {
+        if self.memory.interrupt.iflag == 17 {
+            println!("handle interrupt: {}", self.memory.interrupt.iflag);
+        }
         self.memory.tick();
         self.memory.tick();
         self.ime = false;
