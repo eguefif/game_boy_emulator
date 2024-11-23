@@ -2,6 +2,7 @@
 #![allow(dead_code)]
 
 use minifb::{Key, Window};
+use std::fmt;
 
 #[derive(Clone)]
 pub struct Joypad {
@@ -52,12 +53,6 @@ impl Joypad {
     pub fn get_joypad(&mut self) -> u8 {
         let mut retval = 0b_1100_1111;
         if self.pad_active {
-            retval &= 0b_0001_0000;
-        }
-        if self.button_active {
-            retval &= 0b_0010_0000;
-        }
-        if self.pad_active {
             if self.right {
                 retval &= !0b1;
             }
@@ -70,8 +65,10 @@ impl Joypad {
             if self.down {
                 retval &= !0b1000;
             }
-            return !retval;
+            println!("retval: {:b}", self.set_joypad_bits(!retval));
+            return self.set_joypad_bits(!retval);
         } else if self.button_active {
+            println!("retval: {:b}", self.set_joypad_bits(!retval));
             if self.a {
                 retval &= !0b1;
             }
@@ -84,9 +81,20 @@ impl Joypad {
             if self.start {
                 retval &= !0b1000;
             }
-            return retval;
+            return self.set_joypad_bits(!retval);
         }
-        0x0
+        0xFF
+    }
+
+    fn set_joypad_bits(&mut self, input: u8) -> u8 {
+        let mut retval = input;
+        if self.pad_active {
+            retval &= 0b_0001_0000;
+        }
+        if self.button_active {
+            retval &= 0b_0010_0000;
+        }
+        retval
     }
 
     pub fn update(&mut self, window: &Window) {
@@ -150,5 +158,15 @@ impl Joypad {
         self.b = false;
         self.select = false;
         self.start = false;
+    }
+}
+
+impl fmt::Display for Joypad {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Joypad: SA: {}, SE: {}, A: {}, B: {}, UP: {}, D: {}, L: {}, R: {}",
+            self.start, self.select, self.a, self.b, self.top, self.down, self.left, self.right
+        )
     }
 }

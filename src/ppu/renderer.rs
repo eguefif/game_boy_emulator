@@ -1,6 +1,6 @@
 use crate::ppu::Ppu;
 
-use crate::ppu::config::{TILEMAP_SIZE, WIDTH};
+use crate::ppu::config::WIDTH;
 use crate::ppu::{get_u32_color, Tile};
 
 impl Ppu {

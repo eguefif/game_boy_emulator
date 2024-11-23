@@ -12,15 +12,6 @@ impl Ppu {
             self.dot = 0;
             self.ly = 0;
             self.state = State::Mode0;
-            println!("Turning LCD off");
-        }
-        if !self.is_lcd_active() && value & 0b1000_0000 >= 1 {
-            println!("Turning LCD ON");
-        }
-        if self.is_bg_window_active() && value & 0b_0000_0001 == 0 {
-            println!("turning bg window off");
-        } else if !self.is_bg_window_active() && value & 0b_0000_0001 >= 1 {
-            println!("turning bg window ON");
         }
         self.lcdc = value;
     }
