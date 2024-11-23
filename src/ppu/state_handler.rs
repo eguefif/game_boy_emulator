@@ -1,55 +1,55 @@
 use crate::ppu::Ppu;
+use crate::ppu::State;
 use crate::ppu::State::{Mode0, Mode1, Mode2, Mode3};
 
 impl Ppu {
-    pub fn update_state(&mut self) {
-        if self.state == Mode2 && self.dot % 456 >= 80 {
-            self.state = Mode3;
-            self.update_stat(Mode3);
-        } else if self.state == Mode3 && self.dot % 456 >= 260 {
-            if self.stat & 0b_0000_1000 > 0 {
-                self.stat_int = true;
-            }
-            self.state = Mode0;
-            self.update_stat(Mode0);
-        } else if self.state == Mode0 && self.dot % 456 == 0 {
-            self.move_from0();
-        } else if self.state == Mode1 && self.dot % 70224 == 0 {
-            self.ly = 0;
-            self.state = Mode2;
-            self.update_stat(Mode2);
-        }
-    }
-
-    fn move_from0(&mut self) {
-        self.x = 0;
-        self.ly += 1;
-        if self.ly == 144 {
-            self.state = Mode1;
-            self.update_stat(Mode1);
-            self.vblank = true;
-        } else {
-            self.state = Mode2;
-            self.update_stat(Mode2);
-        }
-    }
-
     pub fn run_ppu(&mut self) {
-        println!("Ly: {}", self.ly);
-        self.check_lcy_y();
         match self.state {
+            Mode0 => {
+                if self.dot % 456 == 0 {
+                    self.scanline_drawn = false;
+                    if self.ly < 144 {
+                        self.ly += 1;
+                        self.switch_state(Mode0);
+                        self.state = Mode0;
+                    } else {
+                        self.state = Mode1;
+                    }
+                }
+            }
             Mode1 => {
-                if self.dot % 456 == 0 && self.ly < 154 && self.ly > 144 {
-                    self.ly += 1;
+                if self.dot != 70224 {
+                    self.increment_ly()
+                } else {
+                    self.ly = 0;
+                    self.state = Mode2;
+                }
+            }
+            Mode2 => {
+                if self.dot % 456 >= 80 {
+                    self.switch_state(Mode3);
                 }
             }
             Mode3 => {
-                if self.x < 160 {
+                if !self.scanline_drawn {
                     self.render();
+                    self.scanline_drawn = true;
+                }
+                if self.dot % 456 >= 80 + 172 {
+                    self.switch_state(Mode0);
                 }
             }
-            _ => {}
         }
+    }
+
+    fn switch_state(&mut self, state: State) {
+        self.update_stat(&state);
+        self.state = state;
+    }
+
+    fn increment_ly(&mut self) {
+        self.ly += 1;
+        self.check_lcy_y();
     }
 
     fn check_lcy_y(&mut self) {

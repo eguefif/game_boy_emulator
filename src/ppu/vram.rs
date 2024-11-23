@@ -1,5 +1,7 @@
 use crate::ppu::Ppu;
 
+use crate::ppu::config::State;
+
 impl Ppu {
     pub fn read(&mut self, loc: usize) -> u8 {
         match loc {

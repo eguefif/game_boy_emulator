@@ -8,7 +8,7 @@ impl Ppu {
         self.stat = (value & 0b1111_1000) | before;
     }
 
-    pub fn update_stat(&mut self, new_state: State) {
+    pub fn update_stat(&mut self, new_state: &State) {
         match new_state {
             Mode3 => {
                 self.stat |= 0b11;
@@ -26,10 +26,10 @@ impl Ppu {
         self.handle_stat_interrupt(new_state);
     }
 
-    fn handle_stat_interrupt(&mut self, new_state: State) {
-        if (self.stat & 0x20 > 0 && new_state == Mode2)
-            || (self.stat & 0b_0001_0000 > 0 && new_state == Mode1)
-            || (self.stat & 0b_0000_1000 > 0 && new_state == Mode0)
+    fn handle_stat_interrupt(&mut self, new_state: &State) {
+        if (self.stat & 0x20 > 0 && *new_state == Mode2)
+            || (self.stat & 0b_0001_0000 > 0 && *new_state == Mode1)
+            || (self.stat & 0b_0000_1000 > 0 && *new_state == Mode0)
         {
             self.stat_int = true;
         }

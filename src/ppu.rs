@@ -20,6 +20,7 @@ pub struct Ppu {
     pub dot: u32,
     pub video_buffer: [u32; VIDEO_BUFFER],
 
+    scanline_drawn: bool,
     x: u8,
     ly: u8,
     lyc: u8,
@@ -52,6 +53,7 @@ impl Ppu {
             video_buffer: [0; VIDEO_BUFFER],
             dot: 0,
 
+            scanline_drawn: false,
             state: State::Mode2,
             ly: 0,
             lyc: 0,
@@ -81,12 +83,9 @@ impl Ppu {
         if !self.is_lcd_active() {
             return;
         }
-        if self.dot > 70224 {
-            self.dot = 0;
+        for _ in 0..=4 {
+            self.run_ppu();
         }
-        self.dot += 4;
-        self.update_state();
-        self.run_ppu();
     }
 
     pub fn get_video_buffer(&mut self) -> &[u32] {

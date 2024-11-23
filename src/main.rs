@@ -35,7 +35,7 @@ fn get_window() -> Window {
     let mut window =
         Window::new("Gameboy", WIDTH, HEIGHT, options).expect("Error while creating window");
     window.topmost(true);
-    window.set_position(1025, 20);
+    window.set_position(600, 0);
     window
 }
 
@@ -48,7 +48,7 @@ fn get_debug_window() -> Option<Window> {
         transparency: false,
         title: true,
         resize: false,
-        scale: Scale::X4,
+        scale: Scale::X2,
         scale_mode: ScaleMode::Stretch,
         topmost: true,
         none: false,
@@ -56,7 +56,7 @@ fn get_debug_window() -> Option<Window> {
     let mut window = Window::new("Debug gameboy", DEBUG_WIDTH, DEBUG_HEIGHT, options)
         .expect("Error while creating window");
     window.topmost(true);
-    window.set_position(0, 20);
+    window.set_position(0, 0);
     window.set_background_color(255, 255, 255);
     Some(window)
 }
