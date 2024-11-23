@@ -1,38 +1,31 @@
 #![allow(clippy::new_without_default)]
 #![allow(dead_code)]
 
-use minifb::{Key, Window};
+use minifb::{Key, KeyRepeat, Window};
 use std::fmt;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
+enum Mode {
+    Pad,
+    Buttons,
+    None,
+}
+
+#[derive(Clone, Debug)]
 pub struct Joypad {
-    down: bool,
-    top: bool,
-    left: bool,
-    right: bool,
-    a: bool,
-    b: bool,
-    start: bool,
-    select: bool,
+    pad: u8,
+    buttons: u8,
+    mode: Mode,
     pub interrupt: bool,
-    pad_active: bool,
-    button_active: bool,
 }
 
 impl Joypad {
     pub fn new() -> Joypad {
         Joypad {
-            down: false,
-            top: false,
-            left: false,
-            right: false,
-            a: false,
-            b: false,
-            start: false,
-            select: false,
+            pad: 0x8F,
+            buttons: 0x8F,
+            mode: Mode::None,
             interrupt: false,
-            pad_active: false,
-            button_active: false,
         }
     }
 
@@ -45,147 +38,66 @@ impl Joypad {
     }
 
     pub fn set_joypad(&mut self, value: u8) {
-        self.button_active = value & 0b_0010_0000 > 0;
-
-        self.pad_active = value & 0b_0001_0000 > 0;
+        //println!("SET new mode: {:b}", value);
+        if (value >> 4) & 1 == 0 {
+            self.mode = Mode::Pad
+        }
+        if (value >> 5) & 1 == 0 {
+            self.mode = Mode::Buttons;
+        }
+        if value & 0x30 > 0 {
+            self.mode = Mode::None;
+        }
     }
 
     pub fn get_joypad(&mut self) -> u8 {
-        let mut retval = 0b_1100_1111;
-        if self.pad_active {
-            if self.right {
-                retval &= !0b1;
-            }
-            if self.left {
-                retval &= !0b10;
-            }
-            if self.top {
-                retval &= !0b100;
-            }
-            if self.down {
-                retval &= !0b1000;
-            }
-            retval = self.set_joypad_bits(retval);
-            return retval;
-        } else if self.button_active {
-            if self.a {
-                retval &= !0b1;
-            }
-            if self.b {
-                retval &= !0b10;
-            }
-            if self.select {
-                retval &= !0b100;
-            }
-            if self.start {
-                retval &= !0b1000;
-            }
-            retval = self.set_joypad_bits(retval);
-            return retval;
+        //println!(
+        //    "GET pad: {:b}, buttons: {:b}, mode: {:?}",
+        //    self.pad, self.buttons, self.mode
+        //);
+        match self.mode {
+            Mode::Pad => self.pad,
+            Mode::Buttons => self.buttons,
+            Mode::None => 0xFF,
         }
-        0xFF
-    }
-
-    fn set_joypad_bits(&mut self, input: u8) -> u8 {
-        let mut retval = input;
-        if self.pad_active {
-            retval |= 0b_0001_0000;
-        }
-        if self.button_active {
-            retval |= 0b_0010_0000;
-        }
-        retval
     }
 
     pub fn update(&mut self, window: &Window) {
-        if window.is_key_down(Key::W) {
-            //&& !window.is_key_down(Key::S) {
-            if !self.top {
-                self.interrupt = true;
-            }
-            self.top = true;
-        } else {
-            self.top = false;
-        }
-        if !window.is_key_down(Key::W) {
-            //&& window.is_key_down(Key::S) {
-            if !self.down {
-                self.interrupt = true;
-            }
-            self.down = true;
-        } else {
-            self.down = false;
-        }
-        if window.is_key_down(Key::A) {
-            //&& !window.is_key_down(Key::D) {
-            if !self.left {
-                self.interrupt = true;
-            }
-            self.left = true;
-        } else {
-            self.left = false;
-        }
-        if !window.is_key_down(Key::A) {
-            //&& window.is_key_down(Key::D) {
-            if !self.right {
-                self.interrupt = true;
-            }
-            self.right = true;
-        } else {
-            self.right = false;
-        }
-        if window.is_key_down(Key::J) {
-            if !self.a {
-                self.interrupt = true;
-            }
-            self.a = true;
-        } else {
-            self.a = false;
-        }
-        if window.is_key_down(Key::K) {
-            if !self.b {
-                self.interrupt = true;
-            }
-            self.b = true;
-        } else {
-            self.b = false;
-        }
-        if window.is_key_down(Key::U) {
-            if !self.start {
-                self.interrupt = true;
-            }
-            self.start = true;
-        } else {
-            self.start = false;
-        }
-        if window.is_key_down(Key::I) {
-            if !self.select {
-                self.interrupt = true;
-            }
-            self.select = true;
-        } else {
-            self.select = false;
-        }
-    }
+        let before_pad = self.pad & 0xF;
+        let before_buttons = self.buttons & 0xF;
+        window
+            .get_keys_pressed(KeyRepeat::No)
+            .iter()
+            .for_each(|key| match key {
+                Key::J => self.buttons &= 0b1110,
+                Key::K => self.buttons &= 0b1101,
+                Key::I => self.buttons &= 0b1011,
+                Key::U => self.buttons &= 0b0111,
 
-    fn reset(&mut self) {
-        self.down = false;
-        self.top = false;
-        self.right = false;
-        self.left = false;
-        self.a = false;
-        self.b = false;
-        self.select = false;
-        self.start = false;
-    }
-}
+                Key::D => self.pad &= 0b1110,
+                Key::A => self.pad &= 0b1101,
+                Key::W => self.pad &= 0b1011,
+                Key::S => self.pad &= 0b0111,
+                _ => {}
+            });
+        window.get_keys_released().iter().for_each(|key| match key {
+            Key::J => self.buttons |= 0b0001,
+            Key::K => self.buttons |= 0b0010,
+            Key::I => self.buttons |= 0b0100,
+            Key::U => self.buttons |= 0b1000,
 
-impl fmt::Display for Joypad {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Joypad: SA: {}, SE: {}, A: {}, B: {}, UP: {}, D: {}, L: {}, R: {}",
-            self.start, self.select, self.a, self.b, self.top, self.down, self.left, self.right
-        )
+            Key::D => self.pad |= 0b0001,
+            Key::A => self.pad |= 0b0010,
+            Key::W => self.pad |= 0b1100,
+            Key::S => self.pad |= 0b1000,
+            _ => {}
+        });
+        if before_pad > self.pad || before_buttons > self.buttons {
+            println!(
+                "trigger interrupt. Before {:b}, after {:b} | {:b}, {:b}",
+                before_pad, self.pad, before_buttons, self.buttons,
+            );
+            self.interrupt = true;
+        }
     }
 }

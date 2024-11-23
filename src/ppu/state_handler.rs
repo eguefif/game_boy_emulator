@@ -14,6 +14,7 @@ impl Ppu {
                         self.switch_state(Mode2);
                     } else {
                         self.switch_state(Mode1);
+                        self.increment_ly();
                         self.vblank = true;
                     }
                 }
@@ -25,6 +26,7 @@ impl Ppu {
                     }
                 } else {
                     self.ly = 0;
+                    self.dot = 0;
                     self.state = Mode2;
                 }
             }
@@ -56,8 +58,6 @@ impl Ppu {
     }
 
     fn check_lcy_y(&mut self) {
-        if self.lyc == self.ly && (self.stat & 0b_1000_0000) > 0 {
-            self.stat_int = true;
-        }
+        self.stat_int = self.lyc == self.ly && (self.stat & 0b_1000_0000) > 0;
     }
 }

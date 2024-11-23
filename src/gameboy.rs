@@ -7,9 +7,10 @@ pub fn run_gameboy(window: &mut Window, debug_window: &mut Option<Window>) {
     let mut cpu = Cpu::new();
     loop {
         let start = Instant::now();
-        cpu.memory.joypad.update(window);
         cpu.step();
-        if cpu.memory.cycle % 17556 == 0 {
+        if cpu.memory.cycle > 17556 {
+            cpu.memory.cycle = 0;
+            cpu.memory.joypad.update(window);
             render(&mut cpu, window, debug_window);
             while start.elapsed().as_millis() < 17 {}
         }

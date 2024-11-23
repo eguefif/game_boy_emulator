@@ -43,8 +43,7 @@ impl Ppu {
         if self.is_tiledata1() {
             offset as usize
         } else {
-            let tmp = 384 / 2 + offset as i8 as i16;
-            tmp as usize
+            128 + ((offset as i8 as i16) + 128) as usize
         }
     }
 

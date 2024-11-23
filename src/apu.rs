@@ -83,7 +83,7 @@ impl Apu {
             0xFF22 => self.ch4_freq,
             0xFF23 => self.ch4_ctrl,
             _ => {
-                println!("PPU read: not handled");
+                println!("APU read: not handled: {:x}", loc);
                 0xFF
             }
         }
@@ -119,7 +119,7 @@ impl Apu {
             0xFF22 => self.ch4_freq = value,
             0xFF23 => self.ch4_ctrl = value,
             _ => {
-                println!("PPU write: not handled")
+                println!("APU write: not handled: {:x}", loc);
             }
         }
     }
