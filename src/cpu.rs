@@ -75,9 +75,6 @@ impl Cpu {
     }
 
     fn handle_interrupt(&mut self) {
-        //if self.memory.interrupt.iflag == 17 {
-        //    println!("handle interrupt: {}", self.memory.interrupt.iflag);
-        //}
         self.memory.tick();
         self.memory.tick();
         self.ime = false;

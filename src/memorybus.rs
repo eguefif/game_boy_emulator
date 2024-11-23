@@ -28,6 +28,10 @@ pub struct MemoryBus {
     wram: [u8; WRAM_SIZE as usize],
     ie: u8,
     debug: [u8; 2],
+
+    dma: bool,
+    dma_addr: u16,
+    dma_target: u16,
 }
 
 impl MemoryBus {
@@ -46,6 +50,9 @@ impl MemoryBus {
             ie: 0,
             cycle: 0,
             debug: [0; 2],
+            dma: false,
+            dma_addr: 0,
+            dma_target: 0xFE00,
         }
     }
 
@@ -76,7 +83,7 @@ impl MemoryBus {
             }
             0xFFFF => self.interrupt.ie,
             _ => {
-                println!("Read: memory not handled: {:x}", loc);
+                eprintln!("Read: memory not handled: {:x}", loc);
                 0
             }
         }
@@ -96,6 +103,7 @@ impl MemoryBus {
             0xFF06 => self.timer.tma = value,
             0xFF07 => self.timer.tac = value | 0xF8,
             0xFF0F => self.interrupt.set_iflag(value),
+            0xFF46 => self.handle_dma(value),
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize] = value,
 
             0xFF10..=0xFF3F => self.apu.write(loc, value),
@@ -111,7 +119,7 @@ impl MemoryBus {
                 self.wram[(new_loc) as usize] = value;
             }
             0xFFFF => self.interrupt.set_ie(value),
-            _ => println!("Write: memory not handled: {:x}", loc),
+            _ => eprintln!("Write: memory not handled: {:x}", loc),
         }
     }
 
@@ -137,6 +145,13 @@ impl MemoryBus {
         self.write(at, value);
     }
 
+    fn handle_dma(&mut self, value: u8) {
+        let addr = (value as u16) << 8;
+        self.dma = true;
+        self.dma_addr = addr;
+        self.dma_target = 0xFE00;
+    }
+
     pub fn tick(&mut self) {
         self.cycle += 1;
         if self.timer.handle_timer() {
@@ -150,6 +165,16 @@ impl MemoryBus {
         if self.ppu.stat_int {
             self.interrupt.require_stat();
             self.ppu.stat_int = false;
+        }
+
+        if self.dma {
+            let value = self.read(self.dma_addr);
+            self.ppu.write_oam(self.dma_target as usize, value);
+            self.dma_addr = self.dma_addr.wrapping_add(1);
+            self.dma_target = self.dma_target.wrapping_add(1);
+            if self.dma_target == 0xFE9F {
+                self.dma = false;
+            }
         }
     }
 

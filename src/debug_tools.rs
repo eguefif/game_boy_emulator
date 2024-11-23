@@ -24,16 +24,17 @@ pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
     }
     if DEBUG_MODE {
         display_opcode(opcode, cpu);
+        println!("{}", cpu.memory.ppu)
     }
     if PAUSE {
         let mut buf = String::new();
         io::stdin().read_line(&mut buf).unwrap();
         unsafe {
             if buf.trim().is_empty() {
-                COUNTER = cpu.memory.cycle as u64 + 1;
+                COUNTER = cpu.memory.cycle.wrapping_add(1) as u64;
             } else {
                 let tmp: u64 = buf.trim().parse().unwrap();
-                COUNTER = cpu.memory.cycle as u64 + tmp;
+                COUNTER = cpu.memory.cycle.wrapping_add(tmp as u128) as u64;
             }
         }
     }
@@ -77,14 +78,22 @@ fn display_opcode(opcode: u8, cpu: &mut Cpu) {
     let mut opcode_display = opcode;
     if opcode == 0xcb {
         opcode_display = cpu.memory.read(cpu.memory.pc);
-        print!("${:<04x}: cb {:02x} |", cpu.memory.pc - 1, opcode_display);
+        print!(
+            "${:<04x}: cb {:02x} |",
+            cpu.memory.pc.wrapping_sub(1),
+            opcode_display
+        );
     } else {
-        print!("${:<04x}: {:02x}    |", cpu.memory.pc - 1, opcode_display);
+        print!(
+            "${:<04x}: {:02x}    |",
+            cpu.memory.pc.wrapping_sub(1),
+            opcode_display
+        );
     }
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{}", cpu.reg);
-    print!(" cycles: {}", cpu.memory.cycle - 1);
-    print!(" | iflag: {:0>5b}", cpu.memory.interrupt.iflag);
+    //print!(" | cycles: {}", cpu.memory.cycle.wrapping_sub(1));
+    //print!(" | iflag: {:0>5b}", cpu.memory.interrupt.iflag);
     //display_stack(cpu);
     println!();
 }
@@ -103,7 +112,7 @@ fn diassemble(opcode: u8, cpu: &mut Cpu) -> String {
     let pc = cpu.memory.pc;
     let imm8 = cpu.memory.read(pc);
     let low = cpu.memory.read(pc);
-    let high = cpu.memory.read(pc + 1);
+    let high = cpu.memory.read(pc.wrapping_add(1));
     let imm16 = combine(high as u16, low as u16);
     match opcode {
         0x0 => String::from("nop"),

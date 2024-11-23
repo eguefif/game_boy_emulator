@@ -5,10 +5,17 @@ impl Ppu {
     pub fn write_lcdc(&mut self, value: u8) {
         if self.state == State::Mode1 && (value & 0b_1000_0000) == 0 && self.stat & 0b_1000_0000 > 0
         {
-            println!("forbiden tried to turn of lcd");
+            eprintln!("forbiden tried to turn of lcd");
             return;
         }
         if self.is_lcd_active() && value & 0b_1000_0000 == 0 {
+            self.turn_lcd = true;
+            self.dot = 0;
+            self.ly = 0;
+            self.state = State::Mode0;
+        }
+        if !self.is_lcd_active() && value & 0b_1000_0000 >= 1 {
+            self.turn_lcd = true;
             self.dot = 0;
             self.ly = 0;
             self.state = State::Mode0;

@@ -43,6 +43,7 @@ pub struct Ppu {
     bgp: u8,
     obp0: u8,
     obp1: u8,
+    pub turn_lcd: bool,
 }
 
 impl Ppu {
@@ -76,6 +77,8 @@ impl Ppu {
             bgp: 0,
             obp0: 0,
             obp1: 0,
+
+            turn_lcd: false,
         }
     }
 

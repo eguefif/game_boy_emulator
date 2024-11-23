@@ -2,7 +2,6 @@
 #![allow(dead_code)]
 
 use minifb::{Key, KeyRepeat, Window};
-use std::fmt;
 
 #[derive(Clone, Debug)]
 enum Mode {
@@ -22,8 +21,8 @@ pub struct Joypad {
 impl Joypad {
     pub fn new() -> Joypad {
         Joypad {
-            pad: 0x8F,
-            buttons: 0x8F,
+            pad: 0xF,
+            buttons: 0xF,
             mode: Mode::None,
             interrupt: false,
         }
@@ -38,27 +37,33 @@ impl Joypad {
     }
 
     pub fn set_joypad(&mut self, value: u8) {
-        //println!("SET new mode: {:b}", value);
         if (value >> 4) & 1 == 0 {
             self.mode = Mode::Pad
         }
         if (value >> 5) & 1 == 0 {
             self.mode = Mode::Buttons;
         }
-        if value & 0x30 > 0 {
+        if value & 0x30 == 0x30 {
             self.mode = Mode::None;
         }
     }
 
     pub fn get_joypad(&mut self) -> u8 {
-        //println!(
-        //    "GET pad: {:b}, buttons: {:b}, mode: {:?}",
-        //    self.pad, self.buttons, self.mode
-        //);
+        let retval = 0xC0 + self.get_mode();
+        let ret = match self.mode {
+            Mode::Pad => retval | self.pad,
+            Mode::Buttons => retval | self.buttons,
+            Mode::None => retval | 0xF,
+        };
+        println!("joypad ret: {:0>8b}", ret);
+        ret
+    }
+
+    fn get_mode(&mut self) -> u8 {
         match self.mode {
-            Mode::Pad => self.pad,
-            Mode::Buttons => self.buttons,
-            Mode::None => 0xFF,
+            Mode::Pad => 0x10,
+            Mode::Buttons => 0x20,
+            Mode::None => 0x0,
         }
     }
 
@@ -92,11 +97,14 @@ impl Joypad {
             Key::S => self.pad |= 0b1000,
             _ => {}
         });
-        if before_pad > self.pad || before_buttons > self.buttons {
+        if before_pad != self.pad || before_buttons != self.buttons {
+            println!("PAD: before {:0>4b}, after {:0>4b}", before_pad, self.pad);
             println!(
-                "trigger interrupt. Before {:b}, after {:b} | {:b}, {:b}",
-                before_pad, self.pad, before_buttons, self.buttons,
+                "Buttons: before {:0>4b}, after {:0>4b}",
+                before_buttons, self.buttons
             );
+        }
+        if before_pad > self.pad || before_buttons > self.buttons {
             self.interrupt = true;
         }
     }

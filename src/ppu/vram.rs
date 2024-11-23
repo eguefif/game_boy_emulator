@@ -39,6 +39,10 @@ impl Ppu {
             _ => 0xFF,
         }
     }
+    pub fn write_oam(&mut self, loc: usize, value: u8) {
+        self.oam[loc - 0xFE00] = value;
+    }
+
     pub fn write(&mut self, loc: usize, value: u8) {
         match loc {
             0x8000..=0x9FFF => {

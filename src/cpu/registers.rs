@@ -182,7 +182,7 @@ impl fmt::Display for Registers {
         let hl = combine(self.h as u16, self.l as u16);
         write!(
             f,
-            " flags: {} | a: ${:02x} | bc: ${:04x} | de: ${:04x} | hl: ${:04x} | sp: ${:04x} |",
+            " flags: {} | a: ${:02x} | bc: ${:04x} | de: ${:04x} | hl: ${:04x} | sp: ${:04x}",
             get_flag_str(self.f),
             self.a,
             bc,
