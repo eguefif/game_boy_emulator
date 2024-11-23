@@ -44,7 +44,6 @@ impl Ppu {
             offset as usize
         } else {
             let tmp = 384 / 2 + offset as i8 as i16;
-            println!("offset: {}", tmp);
             tmp as usize
         }
     }
@@ -58,12 +57,4 @@ impl Ppu {
     }
 
     fn render_window(&mut self) {}
-}
-
-fn wrapping_tilemap_add(x1: u8, x2: u8) -> u16 {
-    if x1 as u16 + x2 as u16 > TILEMAP_SIZE {
-        x1 as u16 + x2 as u16 - TILEMAP_SIZE
-    } else {
-        x1 as u16 + x2 as u16
-    }
 }
