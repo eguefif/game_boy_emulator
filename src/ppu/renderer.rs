@@ -3,6 +3,8 @@ use crate::ppu::Ppu;
 use crate::ppu::config::WIDTH;
 use crate::ppu::{get_u32_color, Tile};
 
+use super::object::Object;
+
 impl Ppu {
     pub fn render(&mut self) {
         if self.is_bg_window_active() {
@@ -10,6 +12,9 @@ impl Ppu {
             if self.is_window() {
                 self.render_window();
             }
+        }
+        if self.is_obj_active() {
+            self.render_obj();
         }
     }
 
@@ -56,4 +61,39 @@ impl Ppu {
     }
 
     fn render_window(&mut self) {}
+
+    fn render_obj(&mut self) {
+        let to_display = self.get_object_to_display();
+        for obj in to_display.iter() {
+            self.render_object(obj);
+        }
+    }
+
+    fn render_object(&mut self, obj: &Object) {
+        let sprite = self.tiles[obj.index as usize];
+        for x in 0..8 {
+            let color = self.get_sprite_color(sprite[self.ly as usize % 8][x], obj.flags);
+            if color != 0 {
+                self.video_buffer
+                    [(obj.y + self.ly % 8) as usize * WIDTH + obj.x as usize * 8 + x] =
+                    get_u32_color(color);
+            }
+        }
+    }
+
+    fn get_object_to_display(&mut self) -> Vec<Object> {
+        let mut iter = self.oam.iter().peekable();
+        let mut retval: Vec<Object> = vec![];
+        loop {
+            if iter.peek() == None {
+                break;
+            }
+            let x = iter.next().unwrap();
+            let y = iter.next().unwrap();
+            let index = iter.next().unwrap();
+            let flags = iter.next().unwrap();
+            retval.push(Object::new(*x, *y, *index, *flags));
+        }
+        retval
+    }
 }

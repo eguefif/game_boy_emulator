@@ -10,7 +10,21 @@ impl Ppu {
             _ => 0,
         }
     }
+    pub fn get_sprite_color(&mut self, value: u8, flags: u8) -> u8 {
+        let mut palette = self.obp0;
+        if flags & 0x10 == 0x10 {
+            palette = self.obp1;
+        }
+        match value & 0b0000_0011 {
+            0 => palette & 0b0000_0011,
+            1 => (palette >> 2) & 0b0000_0011,
+            2 => (palette >> 4) & 0b0000_0011,
+            3 => (palette >> 6) & 0b0000_0011,
+            _ => 0,
+        }
+    }
 }
+
 pub fn get_u32_color(value: u8) -> u32 {
     match value {
         0b00 => from_u8_rgb(0x2A, 0x45, 0x3B),

@@ -3,11 +3,13 @@
 pub mod color;
 pub mod config;
 pub mod lcdc;
+pub mod object;
 pub mod renderer;
 pub mod stat;
 pub mod state_handler;
 pub mod vram;
 
+use crate::ppu::object::Object;
 use config::State;
 use config::{Tile, DEBUG_BUFFER, DEBUG_HEIGHT, DEBUG_WIDTH, OAM_SIZE, VIDEO_BUFFER, VRAM_SIZE};
 
@@ -30,6 +32,7 @@ pub struct Ppu {
     vram: [u8; VRAM_SIZE],
     tiles: [Tile; 384],
     oam: [u8; OAM_SIZE],
+    objects: [Object; 40],
 
     dma: u8,
     lcdc: u8,
@@ -64,6 +67,7 @@ impl Ppu {
             vram: [0; VRAM_SIZE],
             tiles: [[[0; 8]; 8]; 384],
             oam: [0; OAM_SIZE],
+            objects: [Object::new(0, 0, 0, 0); 40],
 
             dma: 0,
             lcdc: 0,

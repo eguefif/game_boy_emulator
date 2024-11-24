@@ -55,7 +55,7 @@ impl Joypad {
             Mode::Buttons => retval | self.buttons,
             Mode::None => retval | 0xF,
         };
-        println!("joypad ret: {:0>8b}", ret);
+        //println!("joypad ret: {:0>8b}", ret);
         ret
     }
 
@@ -97,13 +97,13 @@ impl Joypad {
             Key::S => self.pad |= 0b1000,
             _ => {}
         });
-        if before_pad != self.pad || before_buttons != self.buttons {
-            println!("PAD: before {:0>4b}, after {:0>4b}", before_pad, self.pad);
-            println!(
-                "Buttons: before {:0>4b}, after {:0>4b}",
-                before_buttons, self.buttons
-            );
-        }
+        //if before_pad != self.pad || before_buttons != self.buttons {
+        //    println!("PAD: before {:0>4b}, after {:0>4b}", before_pad, self.pad);
+        //    println!(
+        //        "Buttons: before {:0>4b}, after {:0>4b}",
+        //        before_buttons, self.buttons
+        //    );
+        //}
         if before_pad > self.pad || before_buttons > self.buttons {
             self.interrupt = true;
         }

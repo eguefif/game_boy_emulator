@@ -46,4 +46,12 @@ impl Ppu {
     pub fn is_tiledata1(&mut self) -> bool {
         self.lcdc & 0b0001_0000 >= 1
     }
+
+    pub fn is_obj_active(&mut self) -> bool {
+        self.lcdc & 0b0000_0010 >= 1
+    }
+
+    pub fn is_obj_16(&mut self) -> bool {
+        self.lcdc & 0b0000_0100 >= 1
+    }
 }
