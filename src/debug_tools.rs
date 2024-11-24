@@ -19,12 +19,11 @@ pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
     if TEST_ROM {
         handle_test_rom(cpu);
     }
-    if DEBUG_RENDERING {
+    if DEBUG_RENDERING || cpu.debug_ppu {
         println!("{}", cpu.memory.ppu)
     }
-    if DEBUG_MODE {
+    if DEBUG_MODE || cpu.debug {
         display_opcode(opcode, cpu);
-        println!("{}", cpu.memory.ppu)
     }
     if PAUSE {
         let mut buf = String::new();
@@ -90,10 +89,19 @@ fn display_opcode(opcode: u8, cpu: &mut Cpu) {
             opcode_display
         );
     }
+
+    if opcode == 0x2f {
+        cpu.counter += 1;
+        if cpu.counter >= 20 {
+            std::process::exit(0);
+        }
+    } else {
+        cpu.counter = 0;
+    }
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{}", cpu.reg);
-    //print!(" | cycles: {}", cpu.memory.cycle.wrapping_sub(1));
-    //print!(" | iflag: {:0>5b}", cpu.memory.interrupt.iflag);
+    print!(" | cycles: {}", cpu.memory.cycle.wrapping_sub(1));
+    print!(" | iflag: {:0>5b}", cpu.memory.interrupt.iflag);
     //display_stack(cpu);
     println!();
 }

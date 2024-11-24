@@ -29,6 +29,9 @@ pub struct Cpu {
     prepare_ime: bool,
     halted: bool,
     pub debug: bool,
+    pub debug_ppu: bool,
+    pub counter: u8,
+    pub pause: bool,
 }
 
 impl Cpu {
@@ -40,10 +43,17 @@ impl Cpu {
             ime: false,
             halted: false,
             debug: false,
+            counter: 0,
+            pause: false,
+            debug_ppu: false,
         }
     }
 
     pub fn step(&mut self) {
+        if self.pause {
+            self.memory.tick();
+            return;
+        }
         self.handle_joypad();
         let ime = self.ime;
         if self.prepare_ime {

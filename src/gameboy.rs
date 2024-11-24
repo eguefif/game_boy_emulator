@@ -9,6 +9,7 @@ pub fn run_gameboy(window: &mut Window, debug_window: &mut Option<Window>) {
         let start = Instant::now();
         cpu.step();
         if cpu.memory.cycle > 17556 {
+            handle_debug_ctrl(window, &mut cpu);
             cpu.memory.cycle = 0;
             cpu.memory.joypad.update(window);
             render(&mut cpu, window, debug_window);
@@ -31,5 +32,17 @@ fn render(cpu: &mut Cpu, window: &mut Window, debug_window: &mut Option<Window>)
 fn handle_exit(window: &mut Window) {
     if window.is_key_down(Key::Escape) || !window.is_open() {
         std::process::exit(0);
+    }
+}
+
+fn handle_debug_ctrl(window: &mut Window, cpu: &mut Cpu) {
+    if window.is_key_down(Key::Space) {
+        cpu.pause = !cpu.pause;
+    }
+    if window.is_key_down(Key::Enter) {
+        cpu.debug = !cpu.debug;
+    }
+    if window.is_key_down(Key::P) {
+        cpu.debug_ppu = !cpu.debug_ppu;
     }
 }

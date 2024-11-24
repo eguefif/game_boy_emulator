@@ -96,8 +96,8 @@ impl MemoryBus {
             0..=0x7FFF => self.cartridge.write(loc, value),
 
             0xFF00 => self.joypad.set_joypad(value),
-            0xFF01 => self.debug[0] = value,
-            0xFF02 => self.debug[1] = value,
+            0xFF01 => self.debug[0] = 0, //value,
+            0xFF02 => self.debug[1] = 0, //value,
             0xFF04 => self.timer.div = 0,
             0xFF05 => self.timer.tima = value,
             0xFF06 => self.timer.tma = value,
