@@ -27,10 +27,10 @@ impl Ppu {
 
 pub fn get_u32_color(value: u8) -> u32 {
     match value {
-        0b00 => from_u8_rgb(0x2A, 0x45, 0x3B),
-        0b01 => from_u8_rgb(0x36, 0x5D, 0x48),
-        0b10 => from_u8_rgb(0x57, 0x7C, 0x44),
-        0b11 => from_u8_rgb(0x7F, 0x86, 0x0F),
+        0b11 => from_u8_rgb(0xFF, 0xFF, 0xFF),
+        0b10 => from_u8_rgb(0xAA, 0xAA, 0xAA),
+        0b01 => from_u8_rgb(0x55, 0x55, 0x55),
+        0b00 => from_u8_rgb(0x00, 0x00, 0x00),
         _ => 0,
     }
 }

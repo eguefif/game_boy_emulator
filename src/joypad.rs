@@ -50,20 +50,18 @@ impl Joypad {
 
     pub fn get_joypad(&mut self) -> u8 {
         let retval = 0xC0 + self.get_mode();
-        let ret = match self.mode {
+        match self.mode {
             Mode::Pad => retval | self.pad,
             Mode::Buttons => retval | self.buttons,
             Mode::None => retval | 0xF,
-        };
-        //println!("joypad ret: {:0>8b}", ret);
-        ret
+        }
     }
 
     fn get_mode(&mut self) -> u8 {
         match self.mode {
             Mode::Pad => 0x10,
             Mode::Buttons => 0x20,
-            Mode::None => 0x0,
+            Mode::None => 0x30,
         }
     }
 
@@ -93,7 +91,7 @@ impl Joypad {
 
             Key::D => self.pad |= 0b0001,
             Key::A => self.pad |= 0b0010,
-            Key::W => self.pad |= 0b1100,
+            Key::W => self.pad |= 0b0100,
             Key::S => self.pad |= 0b1000,
             _ => {}
         });

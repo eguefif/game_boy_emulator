@@ -17,7 +17,7 @@ impl Ppu {
                         self.increment_ly();
                         self.vblank = true;
                     }
-                } else if self.dot < 10 {
+                } else if self.dot < 50 {
                     self.switch_state(Mode2);
                 }
             }
