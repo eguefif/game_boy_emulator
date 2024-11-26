@@ -82,18 +82,24 @@ impl Ppu {
     }
 
     fn get_object_to_display(&mut self) -> Vec<Object> {
-        let mut iter = self.oam.iter().peekable();
         let mut retval: Vec<Object> = vec![];
-        loop {
-            if iter.peek() == None {
+        let mut counter = 0;
+        for object in self.objects.iter() {
+            if counter == 10 {
                 break;
             }
-            let x = iter.next().unwrap();
-            let y = iter.next().unwrap();
-            let index = iter.next().unwrap();
-            let flags = iter.next().unwrap();
-            retval.push(Object::new(*x, *y, *index, *flags));
+            let y = object.y;
+            //if self.is_object_visible(y) {
+            //    retval.push(*object);
+            //}
+
+            counter += 1;
         }
+
         retval
+    }
+
+    fn is_object_visible(&mut self, y: u8) -> bool {
+        true
     }
 }

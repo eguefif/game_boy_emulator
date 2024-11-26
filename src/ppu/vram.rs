@@ -2,6 +2,8 @@ use crate::ppu::Ppu;
 
 use crate::ppu::config::State;
 
+use crate::ppu::object::Object;
+
 impl Ppu {
     pub fn read(&mut self, loc: usize) -> u8 {
         match loc {
@@ -41,6 +43,20 @@ impl Ppu {
     }
     pub fn write_oam(&mut self, loc: usize, value: u8) {
         self.oam[loc - 0xFE00] = value;
+    }
+
+    pub fn build_objects_list(&mut self) {
+        let mut iter = self.oam.iter().peekable();
+        loop {
+            if iter.peek().is_none() {
+                break;
+            }
+            let x = iter.next().unwrap();
+            let y = iter.next().unwrap();
+            let index = iter.next().unwrap();
+            let flags = iter.next().unwrap();
+            self.objects.push(Object::new(*x, *y, *index, *flags));
+        }
     }
 
     pub fn write(&mut self, loc: usize, value: u8) {

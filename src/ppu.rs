@@ -32,7 +32,7 @@ pub struct Ppu {
     vram: [u8; VRAM_SIZE],
     tiles: [Tile; 384],
     oam: [u8; OAM_SIZE],
-    objects: [Object; 40],
+    objects: Vec<Object>,
 
     dma: u8,
     lcdc: u8,
@@ -67,7 +67,7 @@ impl Ppu {
             vram: [0; VRAM_SIZE],
             tiles: [[[0; 8]; 8]; 384],
             oam: [0; OAM_SIZE],
-            objects: [Object::new(0, 0, 0, 0); 40],
+            objects: vec![],
 
             dma: 0,
             lcdc: 0,
