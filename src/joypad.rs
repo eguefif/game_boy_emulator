@@ -61,7 +61,7 @@ impl Joypad {
         match self.mode {
             Mode::Pad => 0x10,
             Mode::Buttons => 0x20,
-            Mode::None => 0x30,
+            Mode::None => 0x0,
         }
     }
 
@@ -91,17 +91,10 @@ impl Joypad {
 
             Key::D => self.pad |= 0b0001,
             Key::A => self.pad |= 0b0010,
-            Key::W => self.pad |= 0b0100,
+            Key::W => self.pad |= 0b1100,
             Key::S => self.pad |= 0b1000,
             _ => {}
         });
-        //if before_pad != self.pad || before_buttons != self.buttons {
-        //    println!("PAD: before {:0>4b}, after {:0>4b}", before_pad, self.pad);
-        //    println!(
-        //        "Buttons: before {:0>4b}, after {:0>4b}",
-        //        before_buttons, self.buttons
-        //    );
-        //}
         if before_pad > self.pad || before_buttons > self.buttons {
             self.interrupt = true;
         }

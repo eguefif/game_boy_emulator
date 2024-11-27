@@ -89,15 +89,6 @@ fn display_opcode(opcode: u8, cpu: &mut Cpu) {
             opcode_display
         );
     }
-
-    if opcode == 0x2f {
-        cpu.counter += 1;
-        if cpu.counter >= 20 {
-            std::process::exit(0);
-        }
-    } else {
-        cpu.counter = 0;
-    }
     print!(" {:20} |", diassemble(opcode, cpu));
     print!("{}", cpu.reg);
     print!(" | cycles: {}", cpu.memory.cycle.wrapping_sub(1));

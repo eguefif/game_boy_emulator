@@ -86,17 +86,10 @@ impl Cpu {
     }
 
     fn handle_interrupt(&mut self) {
-        let iflag = self.memory.interrupt.iflag;
-        println!(
-            "iflag {:0>8b}, ie: {:0>8b}",
-            iflag,
-            self.memory.read(0xFFFF)
-        );
         self.memory.tick();
         self.memory.tick();
         self.ime = false;
         let addr = self.memory.interrupt.get_interrupt_addr();
-        println!("jump addr: {:x}", addr);
         let pc = self.memory.pc;
         self.make_push(pc);
         self.memory.pc = addr;

@@ -9,13 +9,11 @@ impl Ppu {
             return;
         }
         if self.is_lcd_active() && value & 0b_1000_0000 == 0 {
-            println!("Turning LCD off: {:0>8b}", value);
             self.dot = 0;
             self.ly = 0;
             self.state = State::Mode0;
         }
         if !self.is_lcd_active() && value & 0b_1000_0000 >= 1 {
-            println!("Turning LCD on: {:0>8b}", value);
             self.dot = 0;
             self.ly = 0;
             self.state = State::Mode0;
