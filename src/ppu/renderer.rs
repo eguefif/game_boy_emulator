@@ -63,8 +63,9 @@ impl Ppu {
     fn render_window(&mut self) {}
 
     fn render_obj(&mut self) {
-        let to_display = self.get_object_to_display();
-        for obj in to_display.iter() {
+        let mut to_display = self.get_object_to_display();
+        to_display.sort();
+        for obj in to_display.iter().rev() {
             self.render_object(obj);
         }
     }
