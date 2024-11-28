@@ -5,6 +5,9 @@ use std::time::Instant;
 use crate::cpu::Cpu;
 pub fn run_gameboy(window: &mut Window, debug_window: &mut Option<Window>) {
     let mut cpu = Cpu::new();
+    let mut speed = 1000;
+    let mut counter = 0;
+    let mut acc = 0;
     loop {
         let start = Instant::now();
         cpu.step();
@@ -13,9 +16,17 @@ pub fn run_gameboy(window: &mut Window, debug_window: &mut Option<Window>) {
             handle_debug_ctrl(window, &mut cpu);
             cpu.memory.joypad.update(window);
             render(&mut cpu, window, debug_window);
+            acc += start.elapsed().as_millis();
+            if counter == 10 {
+                let tmp = acc / 10;
+                if tmp < speed {
+                    speed = tmp;
+                }
+            }
             while start.elapsed().as_millis() < 17 {}
+            counter += 1;
         }
-        handle_exit(window);
+        handle_exit(window, speed);
     }
 }
 
@@ -29,8 +40,9 @@ fn render(cpu: &mut Cpu, window: &mut Window, debug_window: &mut Option<Window>)
     }
 }
 
-fn handle_exit(window: &mut Window) {
+fn handle_exit(window: &mut Window, speed: u128) {
     if window.is_key_down(Key::Escape) || !window.is_open() {
+        println!("speed max {}", speed);
         std::process::exit(0);
     }
 }
