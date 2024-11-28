@@ -51,8 +51,8 @@ impl Ppu {
             if iter.peek().is_none() {
                 break;
             }
-            let x = iter.next().unwrap();
             let y = iter.next().unwrap();
+            let x = iter.next().unwrap();
             let index = iter.next().unwrap();
             let flags = iter.next().unwrap();
             if !(*x == 0 && *y == 0 && *index == 0 && *flags == 0) {

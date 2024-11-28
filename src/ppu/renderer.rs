@@ -64,9 +64,7 @@ impl Ppu {
 
     fn render_obj(&mut self) {
         let to_display = self.get_object_to_display();
-        println!("New rendering of object");
         for obj in to_display.iter() {
-            println!("object: {}", obj);
             self.render_object(obj);
         }
     }
@@ -79,7 +77,7 @@ impl Ppu {
         } else {
             height = 8;
         }
-        let y: usize = obj.y as usize + (self.ly as usize % height);
+        let y: usize = obj.y.wrapping_sub(16) as usize + (self.ly as usize % height);
         let x: usize = obj.x.wrapping_sub(8) as usize;
         for xd in 0..8 {
             if (x + xd) > 159 || y > 143 {
