@@ -47,6 +47,7 @@ impl Ppu {
 
     pub fn build_objects_list(&mut self) {
         let mut iter = self.oam.iter().peekable();
+        let mut counter = 0;
         loop {
             if iter.peek().is_none() {
                 break;
@@ -56,7 +57,9 @@ impl Ppu {
             let index = iter.next().unwrap();
             let flags = iter.next().unwrap();
             if !(*x == 0 && *y == 0 && *index == 0 && *flags == 0) {
-                self.objects.push(Object::new(*x, *y, *index, *flags));
+                self.objects
+                    .push(Object::new(*x, *y, *index, *flags, counter));
+                counter += 0;
             }
         }
     }

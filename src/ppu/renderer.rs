@@ -20,7 +20,7 @@ impl Ppu {
 
     fn render_back(&mut self) {
         for x in 0..(WIDTH / 8) {
-            let offset = self.get_tile_offset(x as u8);
+            let offset = self.get_tile_offset(x as u8, self.ly as u8);
             let index = self.get_base_index_data(offset);
 
             let tile = self.tiles[index];
@@ -28,10 +28,10 @@ impl Ppu {
         }
     }
 
-    fn get_tile_offset(&mut self, x: u8) -> u8 {
+    fn get_tile_offset(&mut self, x: u8, y: u8) -> u8 {
         let base = self.get_base_index();
         let x_offset = ((self.scx / 8) + x) & 0x1F;
-        let y_offset = self.ly.wrapping_add(self.scy);
+        let y_offset = y.wrapping_add(self.scy);
         let offset = base + x_offset as usize + 32 * (y_offset / 8) as usize;
         self.vram[offset]
     }
@@ -86,9 +86,17 @@ impl Ppu {
             }
             let color = self.get_sprite_color(sprite[y as usize % height][(xd + x) % 8], obj.flags);
             if color != 0 {
+                if obj.flags & 0x80 == 0x80 && self.is_bg_window_collision(x + xd, y) {
+                    continue;
+                }
                 self.video_buffer[y as usize * WIDTH + x + xd] = get_u32_color(color);
             }
         }
+    }
+
+    fn is_bg_window_collision(&mut self, x: usize, y: usize) -> bool {
+        let color = self.video_buffer[y as usize * WIDTH + x];
+        color != 0
     }
 
     fn get_object_to_display(&mut self) -> Vec<Object> {

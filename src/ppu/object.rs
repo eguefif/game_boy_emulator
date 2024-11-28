@@ -7,11 +7,18 @@ pub struct Object {
     pub y: u8,
     pub index: u8,
     pub flags: u8,
+    pub oam_position: u8,
 }
 
 impl Object {
-    pub fn new(x: u8, y: u8, index: u8, flags: u8) -> Object {
-        Object { x, y, index, flags }
+    pub fn new(x: u8, y: u8, index: u8, flags: u8, oam_position: u8) -> Object {
+        Object {
+            x,
+            y,
+            index,
+            flags,
+            oam_position,
+        }
     }
 }
 
@@ -28,6 +35,13 @@ impl fmt::Display for Object {
 impl PartialOrd for Object {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+    fn lt(&self, other: &Self) -> bool {
+        if self.x != other.x {
+            self.x < other.x
+        } else {
+            self.oam_position < other.oam_position
+        }
     }
 }
 
@@ -52,25 +66,25 @@ mod tests {
 
     #[test]
     fn it_should_be_lesser_than() {
-        let o1 = Object::new(1, 2, 5, 5);
-        let o2 = Object::new(2, 2, 5, 5);
+        let o1 = Object::new(1, 2, 5, 5, 3);
+        let o2 = Object::new(2, 2, 5, 5, 5);
 
         assert!(o1 < o2)
     }
 
     #[test]
     fn it_should_be_greater_than() {
-        let o1 = Object::new(3, 2, 5, 5);
-        let o2 = Object::new(2, 2, 5, 5);
+        let o1 = Object::new(3, 2, 5, 5, 3);
+        let o2 = Object::new(2, 2, 5, 5, 5);
 
         assert!(o1 > o2)
     }
 
     #[test]
-    fn it_should_be_equal() {
-        let o1 = Object::new(2, 2, 5, 5);
-        let o2 = Object::new(2, 2, 5, 5);
+    fn it_should_be_less_if_eq() {
+        let o1 = Object::new(2, 2, 5, 5, 3);
+        let o2 = Object::new(2, 2, 5, 5, 5);
 
-        assert!(o1 == o2)
+        assert!(o1 < o2)
     }
 }
