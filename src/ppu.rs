@@ -31,8 +31,8 @@ pub struct Ppu {
     debug_tiles: [u32; DEBUG_BUFFER],
     vram: [u8; VRAM_SIZE],
     tiles: [Tile; 384],
-    oam: [u8; OAM_SIZE],
-    objects: Vec<Object>,
+    pub oam: [u8; OAM_SIZE],
+    pub objects: Vec<Object>,
 
     dma: u8,
     lcdc: u8,

@@ -69,7 +69,7 @@ impl Joypad {
         let before_pad = self.pad & 0xF;
         let before_buttons = self.buttons & 0xF;
         window
-            .get_keys_pressed(KeyRepeat::No)
+            .get_keys_pressed(KeyRepeat::Yes)
             .iter()
             .for_each(|key| match key {
                 Key::J => self.buttons &= 0b1110,

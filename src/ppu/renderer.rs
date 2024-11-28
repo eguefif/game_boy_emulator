@@ -64,19 +64,30 @@ impl Ppu {
 
     fn render_obj(&mut self) {
         let to_display = self.get_object_to_display();
+        println!("New rendering of object");
         for obj in to_display.iter() {
+            println!("object: {}", obj);
             self.render_object(obj);
         }
     }
 
     fn render_object(&mut self, obj: &Object) {
         let sprite = self.tiles[obj.index as usize];
-        for x in 0..8 {
-            let color = self.get_sprite_color(sprite[self.ly as usize % 8][x], obj.flags);
+        let height: usize;
+        if self.is_obj_16() {
+            height = 16;
+        } else {
+            height = 8;
+        }
+        let y: usize = obj.y as usize + (self.ly as usize % height);
+        let x: usize = obj.x.wrapping_sub(8) as usize;
+        for xd in 0..8 {
+            if (x + xd) > 159 || y > 143 {
+                continue;
+            }
+            let color = self.get_sprite_color(sprite[y as usize % height][(xd + x) % 8], obj.flags);
             if color != 0 {
-                self.video_buffer
-                    [(obj.y + self.ly % 8) as usize * WIDTH + obj.x as usize * 8 + x] =
-                    get_u32_color(color);
+                self.video_buffer[y as usize * WIDTH + x + xd] = get_u32_color(color);
             }
         }
     }
@@ -84,22 +95,132 @@ impl Ppu {
     fn get_object_to_display(&mut self) -> Vec<Object> {
         let mut retval: Vec<Object> = vec![];
         let mut counter = 0;
+        let size = self.is_obj_16();
         for object in self.objects.iter() {
             if counter == 10 {
                 break;
             }
             let y = object.y;
-            //if self.is_object_visible(y) {
-            //    retval.push(*object);
-            //}
+            if is_object_visible(y, self.ly, size) {
+                retval.push(*object);
+            }
 
             counter += 1;
         }
 
         retval
     }
+}
+fn is_object_visible(y: u8, ly: u8, big_sprite: bool) -> bool {
+    let adjust_ly = ly + 16;
+    if !is_sprite_in_visible_frame(y, big_sprite) {
+        return false;
+    }
+    if !big_sprite {
+        adjust_ly >= y && adjust_ly < (y + 8)
+    } else {
+        adjust_ly >= y && adjust_ly < (y + 16)
+    }
+}
 
-    fn is_object_visible(&mut self, y: u8) -> bool {
-        true
+fn is_sprite_in_visible_frame(y: u8, big_sprite: bool) -> bool {
+    if y > 160 {
+        return false;
+    }
+    if big_sprite && y + 16 < 16 {
+        return false;
+    }
+    if !big_sprite && y + 8 < 16 {
+        return false;
+    }
+    true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_should_be_visible() {
+        let res = is_object_visible(9, 0, false);
+
+        assert!(res);
+    }
+
+    #[test]
+    fn it_should_not_be_visible() {
+        let res = is_object_visible(8, 0, false);
+
+        assert!(!res);
+    }
+
+    #[test]
+    fn it_should_not_be_visible_for_big_sprite() {
+        let res = is_object_visible(0, 0, true);
+
+        assert!(!res);
+    }
+
+    #[test]
+    fn it_should_be_visible_16() {
+        let res = is_object_visible(2, 0, true);
+
+        assert!(res);
+    }
+
+    #[test]
+    fn it_should_not_be_visible_8() {
+        let res = is_object_visible(160, 143, false);
+
+        assert!(!res);
+    }
+
+    #[test]
+    fn it_should_be_visible_8_lower_part() {
+        let res = is_object_visible(159, 143, false);
+
+        assert!(res);
+    }
+
+    #[test]
+    fn it_should_not_be_visible_16_lower_limit() {
+        let res = is_object_visible(40, 23, true);
+
+        assert!(!res);
+    }
+
+    #[test]
+    fn it_should_be_visible_16_lower_limit() {
+        let res = is_object_visible(40, 24, true);
+
+        assert!(res);
+    }
+
+    #[test]
+    fn it_should_not_be_visible_16_higher_limit() {
+        let res = is_object_visible(40, 40, true);
+
+        assert!(!res);
+    }
+
+    #[test]
+    fn it_should_not_be_visible_8_higher_limit() {
+        let res = is_object_visible(40, 32, false);
+
+        assert!(!res);
+    }
+
+    #[test]
+    fn it_should_be_visible_16_higher_limit() {
+        let res = is_object_visible(40, 39, true);
+
+        assert!(res);
+    }
+
+    #[test]
+    fn it_should_be_visible_8_higher_limit() {
+        let res = is_object_visible(40, 31, false);
+
+        assert!(res);
     }
 }

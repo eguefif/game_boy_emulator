@@ -55,7 +55,9 @@ impl Ppu {
             let y = iter.next().unwrap();
             let index = iter.next().unwrap();
             let flags = iter.next().unwrap();
-            self.objects.push(Object::new(*x, *y, *index, *flags));
+            if !(*x == 0 && *y == 0 && *index == 0 && *flags == 0) {
+                self.objects.push(Object::new(*x, *y, *index, *flags));
+            }
         }
     }
 

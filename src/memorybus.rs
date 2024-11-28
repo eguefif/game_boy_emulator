@@ -147,6 +147,7 @@ impl MemoryBus {
 
     fn handle_dma(&mut self, value: u8) {
         let addr = (value as u16) << 8;
+        self.ppu.objects.clear();
         self.dma = true;
         self.dma_addr = addr;
         self.dma_target = 0xFE00;
@@ -173,6 +174,7 @@ impl MemoryBus {
             self.dma_addr = self.dma_addr.wrapping_add(1);
             self.dma_target = self.dma_target.wrapping_add(1);
             if self.dma_target == 0xFE9F {
+                self.ppu.build_objects_list();
                 self.dma = false;
             }
         }
