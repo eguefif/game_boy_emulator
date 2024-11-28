@@ -2,7 +2,7 @@ use std::io;
 
 use crate::{cpu::registers::combine, cpu::Cpu};
 
-pub const DEBUG_SPRITES: bool = true;
+pub const DEBUG_SPRITES: bool = false;
 pub const DEBUG_RENDERING: bool = false;
 const PAUSE: bool = false;
 const TEST_ROM: bool = false;
@@ -19,10 +19,10 @@ pub fn handle_debug(opcode: u8, cpu: &mut Cpu) {
     if TEST_ROM {
         handle_test_rom(cpu);
     }
-    if DEBUG_RENDERING || cpu.debug_ppu {
+    if DEBUG_RENDERING {
         println!("{}", cpu.memory.ppu)
     }
-    if DEBUG_MODE || cpu.debug {
+    if DEBUG_MODE {
         display_opcode(opcode, cpu);
     }
     if PAUSE {
