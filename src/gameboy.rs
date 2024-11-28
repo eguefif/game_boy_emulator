@@ -8,9 +8,9 @@ pub fn run_gameboy(window: &mut Window, debug_window: &mut Option<Window>) {
     loop {
         let start = Instant::now();
         cpu.step();
-        if cpu.memory.cycle > 17556 {
+        if cpu.memory.ppu.frame_drawn {
+            cpu.memory.ppu.frame_drawn = false;
             handle_debug_ctrl(window, &mut cpu);
-            cpu.memory.cycle = 0;
             cpu.memory.joypad.update(window);
             render(&mut cpu, window, debug_window);
             while start.elapsed().as_millis() < 17 {}

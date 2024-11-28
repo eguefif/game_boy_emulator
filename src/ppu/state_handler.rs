@@ -13,6 +13,7 @@ impl Ppu {
                         self.increment_ly();
                         self.switch_state(Mode2);
                     } else {
+                        self.frame_drawn = true;
                         self.switch_state(Mode1);
                         self.increment_ly();
                         self.vblank = true;

@@ -21,6 +21,8 @@ pub struct Ppu {
     pub stat_int: bool,
     pub dot: u32,
     pub video_buffer: [u32; VIDEO_BUFFER],
+    pub objects: Vec<Object>,
+    pub frame_drawn: bool,
 
     scanline_drawn: bool,
     x: u8,
@@ -31,8 +33,7 @@ pub struct Ppu {
     debug_tiles: [u32; DEBUG_BUFFER],
     vram: [u8; VRAM_SIZE],
     tiles: [Tile; 384],
-    pub oam: [u8; OAM_SIZE],
-    pub objects: Vec<Object>,
+    oam: [u8; OAM_SIZE],
 
     dma: u8,
     lcdc: u8,
@@ -55,6 +56,7 @@ impl Ppu {
             stat_int: false,
             video_buffer: [0; VIDEO_BUFFER],
             dot: 0,
+            frame_drawn: false,
 
             scanline_drawn: false,
             state: State::Mode2,
