@@ -6,7 +6,7 @@ pub const DEBUG_SPRITES: bool = false;
 pub const DEBUG_RENDERING: bool = false;
 const PAUSE: bool = false;
 const TEST_ROM: bool = false;
-const DEBUG_MODE: bool = false;
+const DEBUG_MODE: bool = true;
 static mut TEST_ROM_MESSAGE: String = String::new();
 static mut COUNTER: u64 = 0;
 

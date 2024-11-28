@@ -60,7 +60,31 @@ impl Ppu {
         }
     }
 
-    fn render_window(&mut self) {}
+    fn render_window(&mut self) {
+        for x in 0..(WIDTH / 8) {
+            let offset = self.get_window_tile_offset(x as u8, self.ly as u8);
+            let index = self.get_base_index_data(offset);
+
+            let tile = self.tiles[index];
+            self.write_tile_in_video_buffer(&tile, x, self.ly as usize);
+        }
+    }
+
+    fn get_window_tile_offset(&mut self, x: u8, y: u8) -> u8 {
+        let base = self.get_window_base_index();
+        let x_offset = x & 0x1F;
+        let y_offset = y.wrapping_add(self.scy);
+        let offset = base + x_offset as usize + 32 * (y_offset / 8) as usize;
+        self.vram[offset]
+    }
+
+    fn get_window_base_index(&mut self) -> usize {
+        if self.is_window_tilemap2() {
+            0x1c00
+        } else {
+            0x1800
+        }
+    }
 
     fn render_obj(&mut self) {
         let mut to_display = self.get_object_to_display();
