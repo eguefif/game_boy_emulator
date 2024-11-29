@@ -7,13 +7,14 @@ pub struct Header {
     new_licence_code: [u8; 2],
     sgb: u8,
     cartridge_type: u8,
-    rom_size: u8,
+    rom_size: u32,
     ram_size: u8,
     destination: u8,
     old_licence_code: u8,
     mask_rom_version: u8,
     header_checksum: u8,
     global_checksum: [u8; 2],
+    nintendo_logo: [u8; 48],
 }
 
 impl Header {
@@ -23,15 +24,26 @@ impl Header {
             new_licence_code: [rom[0x144], rom[0x145]],
             sgb: rom[0x146] as u8,
             cartridge_type: rom[0x147] as u8,
-            rom_size: rom[0x148] as u8,
-            ram_size: rom[0x149] as u8,
+            rom_size: get_rom_size(rom[0x148] as u8),
+            ram_size: get_ram_size(rom[0x149] as u8),
             destination: rom[0x14a] as u8,
             old_licence_code: rom[0x14b] as u8,
             mask_rom_version: rom[0x14c] as u8,
             header_checksum: rom[0x14D] as u8,
             global_checksum: [rom[0x14E], rom[0x14F]],
+            nintendo_logo: get_logo(&rom),
         }
     }
+}
+
+fn get_logo(rom: &[u8; TOTAL_ROM_SIZE as usize]) -> [u8; 48] {
+    let mut counter = 0;
+    let mut retval = [0; 48];
+    for value in rom[0x104..0x133].iter() {
+        retval[counter] = *value;
+        counter += 1;
+    }
+    retval
 }
 
 fn get_title(rom: [u8; TOTAL_ROM_SIZE as usize]) -> String {
@@ -42,22 +54,46 @@ fn get_title(rom: [u8; TOTAL_ROM_SIZE as usize]) -> String {
     retval
 }
 
+fn get_ram_size(ram: u8) -> u8 {
+    match ram {
+        0 => 0,
+        1 => 0,
+        2 => 8,
+        3 => 32,
+        4 => 128,
+        5 => 64,
+        _ => 0,
+    }
+}
+
+fn get_rom_size(value: u8) -> u32 {
+    32 * (1 << value)
+}
+
 impl fmt::Display for Header {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
             "
-Title: {} \nOld Licence Code: {}\nsgb: {}\nCartridge Type: {}\nRom Size: {}\nRam Size: {}
+Title: {} \nNew Licence Code: {}\nsgb: {}\nCartridge Type: {}\nRom Size: {:}\nRam Size: {:}
 Destination: {}\nOld licence code: {}\nMask rom version: {}\nHeader Checksum: {}
 Global Checksum: {}
 ",
             self.title,
             map_old_licence_code(self.old_licence_code),
-            self.sgb,
-            self.cartridge_type,
+            if self.sgb == 0x3 {
+                "sgb supported"
+            } else {
+                "No sgb"
+            },
+            map_cartridge_type(self.cartridge_type),
             self.rom_size,
             self.ram_size,
-            self.destination,
+            if self.destination == 0 {
+                "Japan"
+            } else {
+                "Overseas only"
+            },
             map_new_licence_code(self.new_licence_code),
             self.mask_rom_version,
             self.header_checksum,
@@ -67,6 +103,7 @@ Global Checksum: {}
 }
 
 fn map_old_licence_code(code: u8) -> String {
+    println!("code: {}", code == 0x01);
     let retval = match code {
         0x00 => "None",
         0x01 => "Nintendo",
@@ -289,6 +326,41 @@ fn map_new_licence_code(input: [u8; 2]) -> String {
         "A4" => "Konami (Yu-Gi-Oh!)",
         "BL" => "MTO",
         "DK" => "Kodansha",
+        _ => "Unknown",
+    };
+    String::from(retval)
+}
+
+fn map_cartridge_type(code: u8) -> String {
+    let retval = match code {
+        0x00 => "ROM ONLY",
+        0x01 => "MBC1",
+        0x02 => "MBC1+RAM",
+        0x03 => "MBC1+RAM+BATTERY",
+        0x05 => "MBC2",
+        0x06 => "MBC2+BATTERY",
+        0x08 => "ROM+RAM 9",
+        0x09 => "ROM+RAM+BATTERY 9",
+        0x0B => "MMM01",
+        0x0C => "MMM01+RAM",
+        0x0D => "MMM01+RAM+BATTERY",
+        0x0F => "MBC3+TIMER+BATTERY",
+        0x10 => "MBC3+TIMER+RAM+BATTERY 10",
+        0x11 => "MBC3",
+        0x12 => "MBC3+RAM 10",
+        0x13 => "MBC3+RAM+BATTERY 10",
+        0x19 => "MBC5",
+        0x1A => "MBC5+RAM",
+        0x1B => "MBC5+RAM+BATTERY",
+        0x1C => "MBC5+RUMBLE",
+        0x1D => "MBC5+RUMBLE+RAM",
+        0x1E => "MBC5+RUMBLE+RAM+BATTERY",
+        0x20 => "MBC6",
+        0x22 => "MBC7+SENSOR+RUMBLE+RAM+BATTERY",
+        0xFC => "POCKET CAMERA",
+        0xFD => "BANDAI TAMA5",
+        0xFE => "HuC3",
+        0xFF => "HuC1+RAM+BATTERY",
         _ => "Unknown",
     };
     String::from(retval)

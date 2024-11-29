@@ -83,7 +83,7 @@ impl MemoryBus {
             }
             0xFFFF => self.interrupt.ie,
             _ => {
-                eprintln!("Read: memory not handled: {:x}", loc);
+                //eprintln!("Read: memory not handled: {:x}", loc);
                 0
             }
         }
@@ -104,6 +104,7 @@ impl MemoryBus {
             0xFF07 => self.timer.tac = value | 0xF8,
             0xFF0F => self.interrupt.set_iflag(value),
             0xFF46 => self.handle_dma(value),
+            0xFF50 => self.cartridge.bootstrap = false,
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize] = value,
 
             0xFF10..=0xFF3F => self.apu.write(loc, value),
@@ -119,7 +120,7 @@ impl MemoryBus {
                 self.wram[(new_loc) as usize] = value;
             }
             0xFFFF => self.interrupt.set_ie(value),
-            _ => eprintln!("Write: memory not handled: {:x}", loc),
+            _ => {} //eprintln!("Write: memory not handled: {:x}", loc),
         }
     }
 
