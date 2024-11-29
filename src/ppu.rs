@@ -71,7 +71,7 @@ impl Ppu {
             objects: vec![],
 
             dma: 0,
-            lcdc: 0,
+            lcdc: 0x80,
             stat: 0b0000_0010,
 
             scy: 0,
