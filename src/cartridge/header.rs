@@ -14,7 +14,6 @@ pub struct Header {
     mask_rom_version: u8,
     header_checksum: u8,
     global_checksum: [u8; 2],
-    nintendo_logo: [u8; 48],
 }
 
 impl Header {
@@ -31,19 +30,8 @@ impl Header {
             mask_rom_version: rom[0x14c] as u8,
             header_checksum: rom[0x14D] as u8,
             global_checksum: [rom[0x14E], rom[0x14F]],
-            nintendo_logo: get_logo(&rom),
         }
     }
-}
-
-fn get_logo(rom: &[u8; TOTAL_ROM_SIZE as usize]) -> [u8; 48] {
-    let mut counter = 0;
-    let mut retval = [0; 48];
-    for value in rom[0x104..0x133].iter() {
-        retval[counter] = *value;
-        counter += 1;
-    }
-    retval
 }
 
 fn get_title(rom: [u8; TOTAL_ROM_SIZE as usize]) -> String {
