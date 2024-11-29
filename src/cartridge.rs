@@ -1,23 +1,37 @@
 #![allow(clippy::new_without_default)]
+#![allow(unused_variables)]
 
 use std::{env, fs::File, io::Read};
 
+use crate::cartridge::header::Header;
+
 const TOTAL_ROM_SIZE: u16 = 0x7FFF + 1;
+
+pub mod header;
 
 pub struct Cartridge {
     rom: [u8; TOTAL_ROM_SIZE as usize],
+    header: Header,
 }
 
 impl Cartridge {
     pub fn new() -> Cartridge {
-        Cartridge { rom: get_rom() }
+        let rom = get_rom();
+        let retval = Cartridge {
+            rom,
+            header: Header::new(rom),
+        };
+        println!("{}", retval.header);
+        retval
     }
 
     pub fn read(&mut self, at: u16) -> u8 {
         self.rom[at as usize]
     }
     pub fn write(&mut self, at: u16, value: u8) {
-        self.rom[at as usize] = value;
+        match at {
+            _ => {}
+        }
     }
 }
 

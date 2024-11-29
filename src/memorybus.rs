@@ -93,7 +93,7 @@ impl MemoryBus {
         let loc = at & MEM_MAX;
 
         match loc {
-            0..=0x7FFF => {}
+            0..=0x7FFF => self.cartridge.write(at, value),
 
             0xFF00 => self.joypad.set_joypad(value),
             0xFF01 => self.debug[0] = value, //value,
