@@ -109,7 +109,7 @@ impl Ppu {
                 continue;
             }
             let pixel = sprite[y % height][(xd + x) % 8];
-            if pixel != 0 {
+            if pixel != 3 {
                 let color = self.get_sprite_color(pixel, obj.flags);
                 if obj.flags & 0x80 == 0x80 && self.is_bg_window_collision(x + xd, y) {
                     continue;
