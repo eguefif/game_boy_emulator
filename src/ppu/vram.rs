@@ -111,8 +111,8 @@ impl Ppu {
             let msb = byte2 & mask;
             let value = match (lsb != 0, msb != 0) {
                 (false, false) => 0,
-                (true, false) => 2,
-                (false, true) => 1,
+                (true, false) => 1,
+                (false, true) => 2,
                 (true, true) => 3,
             };
             self.tiles[tile_loc][row_loc][pixel_index] = value;

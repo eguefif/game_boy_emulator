@@ -4,7 +4,7 @@ use crate::ppu::config::WIDTH;
 use crate::ppu::{get_u32_color, Tile};
 
 use super::config::HEIGHT;
-use super::object::Object;
+use super::object::{flip_tile_if_flag, Object};
 
 impl Ppu {
     pub fn render(&mut self) {
@@ -100,7 +100,9 @@ impl Ppu {
     }
 
     fn render_object(&mut self, obj: &Object) {
-        let sprite = self.tiles[obj.index as usize];
+        let tile = self.tiles[obj.index as usize];
+        let sprite = flip_tile_if_flag(tile, obj.flags);
+
         let height = 8;
         let y: usize = obj.y.wrapping_sub(16) as usize + (self.ly as usize % height);
         let x: usize = obj.x.wrapping_sub(8) as usize;
@@ -109,7 +111,7 @@ impl Ppu {
                 continue;
             }
             let pixel = sprite[y % height][(xd + x) % 8];
-            if pixel != 3 {
+            if pixel != 0 {
                 let color = self.get_sprite_color(pixel, obj.flags);
                 if obj.flags & 0x80 == 0x80 && self.is_bg_window_collision(x + xd, y) {
                     continue;

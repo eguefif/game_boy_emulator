@@ -1,6 +1,8 @@
 use std::cmp::Ordering;
 use std::fmt;
 
+use super::config::Tile;
+
 #[derive(Copy, Clone)]
 pub struct Object {
     pub x: u8,
@@ -20,6 +22,41 @@ impl Object {
             oam_position,
         }
     }
+}
+
+pub fn flip_tile_if_flag(tile: Tile, flags: u8) -> Tile {
+    if flags & 0b0100_0000 == 0 && flags & 0b0010_0000 == 0 {
+        return tile;
+    }
+    let mut new_tile = [[0; 8]; 8];
+    if flags & 0b0010_0000 != 0 {
+        for y in 0..8 {
+            new_tile[y] = flip_x(tile[y]);
+        }
+    } else if flags & 0b0100_0000 != 0 {
+        for y in 0..8 {
+            new_tile[y] = tile[7 - y];
+        }
+    }
+    if flags & 0b100_0000 != 0 && flags & 0b10_0000 != 0 {
+        new_tile = [[0; 8]; 8];
+        for y in 0..8 {
+            new_tile[y] = tile[7 - y];
+        }
+
+        for y in 0..8 {
+            new_tile[y] = flip_x(new_tile[y]);
+        }
+    }
+    new_tile
+}
+
+fn flip_x(row: [u8; 8]) -> [u8; 8] {
+    let mut new_row = [0; 8];
+    for x in 0..8 {
+        new_row[x] = row[7 - x];
+    }
+    new_row
 }
 
 impl fmt::Display for Object {
