@@ -13,6 +13,7 @@ impl Ppu {
     pub fn get_sprite_color(&mut self, value: u8, flags: u8) -> u8 {
         let mut palette = self.obp0;
         if flags & 0b1_0000 != 0 {
+            println!("obp1");
             palette = self.obp1;
         }
         match value & 0b0000_0011 {
@@ -20,7 +21,7 @@ impl Ppu {
             1 => (palette >> 2) & 0b0000_0011,
             2 => (palette >> 4) & 0b0000_0011,
             3 => (palette >> 6) & 0b0000_0011,
-            _ => 0,
+            _ => 0xFF,
         }
     }
 }

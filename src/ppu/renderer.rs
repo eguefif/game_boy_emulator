@@ -108,8 +108,9 @@ impl Ppu {
             if (x + xd) > WIDTH || y > HEIGHT {
                 continue;
             }
-            let color = self.get_sprite_color(sprite[y % height][(xd + x) % 8], obj.flags);
-            if color != 0 {
+            let pixel = sprite[y % height][(xd + x) % 8];
+            if pixel != 0 {
+                let color = self.get_sprite_color(pixel, obj.flags);
                 if obj.flags & 0x80 == 0x80 && self.is_bg_window_collision(x + xd, y) {
                     continue;
                 }
@@ -127,18 +128,22 @@ impl Ppu {
         let mut retval: Vec<Object> = vec![];
         let size = self.is_obj_16();
         let mut obj_iter = self.objects.iter();
-        for _ in 0..10 {
+        let mut counter = 0;
+        loop {
+            if counter == 10 {
+                break;
+            }
             let obj = obj_iter.next();
             if let Some(object) = obj {
                 let y = object.y;
                 if is_object_visible(y, self.ly, size) {
                     retval.push(*object);
+                    counter += 1;
                 }
             } else {
                 break;
             }
         }
-
         retval
     }
 

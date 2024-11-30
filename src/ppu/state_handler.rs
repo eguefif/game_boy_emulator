@@ -38,6 +38,8 @@ impl Ppu {
             }
             Mode2 => {
                 if self.dot % 456 >= 80 {
+                    self.objects.clear();
+                    self.build_objects_list();
                     self.switch_state(Mode3);
                 }
             }
