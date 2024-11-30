@@ -3,15 +3,18 @@ use crate::ppu::Ppu;
 use crate::ppu::config::WIDTH;
 use crate::ppu::{get_u32_color, Tile};
 
+use super::config::HEIGHT;
 use super::object::Object;
 
 impl Ppu {
     pub fn render(&mut self) {
         if self.is_bg_window_active() {
             self.render_back();
-            if self.is_window() {
+            if self.window_visible() {
                 self.render_window();
             }
+        } else {
+            self.paint_white();
         }
         if self.is_obj_active() {
             self.render_obj();
@@ -20,7 +23,7 @@ impl Ppu {
 
     fn render_back(&mut self) {
         for x in 0..(WIDTH / 8) {
-            let offset = self.get_tile_offset(x as u8, self.ly as u8);
+            let offset = self.get_tile_offset(x as u8, self.ly);
             let index = self.get_base_index_data(offset);
 
             let tile = self.tiles[index];
@@ -48,7 +51,7 @@ impl Ppu {
         if self.is_tiledata1() {
             offset as usize
         } else {
-            128 + ((offset as i8 as i16) + 128) as usize
+            128 + (offset.wrapping_add(128) as usize)
         }
     }
 
@@ -62,19 +65,21 @@ impl Ppu {
 
     fn render_window(&mut self) {
         for x in 0..(WIDTH / 8) {
-            let offset = self.get_window_tile_offset(x as u8, self.ly as u8);
+            let offset = self.get_window_tile_offset(x as u8, self.window_ly);
             let index = self.get_base_index_data(offset);
 
             let tile = self.tiles[index];
-            self.write_tile_in_video_buffer(&tile, x, self.ly as usize);
+            self.write_tile_in_video_buffer(
+                &tile,
+                (self.wx as usize + (x * 8)) / 8,
+                self.ly as usize,
+            );
         }
     }
 
     fn get_window_tile_offset(&mut self, x: u8, y: u8) -> u8 {
         let base = self.get_window_base_index();
-        let x_offset = x & 0x1F;
-        let y_offset = y.wrapping_add(self.scy);
-        let offset = base + x_offset as usize + 32 * (y_offset / 8) as usize;
+        let offset = base + x as usize + 32 * (y / 8) as usize;
         self.vram[offset]
     }
 
@@ -96,19 +101,14 @@ impl Ppu {
 
     fn render_object(&mut self, obj: &Object) {
         let sprite = self.tiles[obj.index as usize];
-        let height: usize;
-        if self.is_obj_16() {
-            height = 16;
-        } else {
-            height = 8;
-        }
+        let height = 8;
         let y: usize = obj.y.wrapping_sub(16) as usize + (self.ly as usize % height);
         let x: usize = obj.x.wrapping_sub(8) as usize;
         for xd in 0..8 {
-            if (x + xd) > 159 || y > 143 {
+            if (x + xd) > WIDTH || y > HEIGHT {
                 continue;
             }
-            let color = self.get_sprite_color(sprite[y as usize % height][(xd + x) % 8], obj.flags);
+            let color = self.get_sprite_color(sprite[y % height][(xd + x) % 8], obj.flags);
             if color != 0 {
                 if obj.flags & 0x80 == 0x80 && self.is_bg_window_collision(x + xd, y) {
                     continue;
@@ -120,7 +120,7 @@ impl Ppu {
 
     fn is_bg_window_collision(&mut self, x: usize, y: usize) -> bool {
         let color = self.video_buffer[y * WIDTH + x];
-        color != 0
+        color != get_u32_color(0)
     }
 
     fn get_object_to_display(&mut self) -> Vec<Object> {
@@ -141,6 +141,13 @@ impl Ppu {
 
         retval
     }
+
+    fn paint_white(&mut self) {
+        let color = self.get_color_from_bg_palette(0);
+        for x in 0..(WIDTH) {
+            self.video_buffer[self.ly as usize * WIDTH + x] = get_u32_color(color);
+        }
+    }
 }
 fn is_object_visible(y: u8, ly: u8, big_sprite: bool) -> bool {
     let adjust_ly = ly + 16;
@@ -158,10 +165,10 @@ fn is_sprite_in_visible_frame(y: u8, big_sprite: bool) -> bool {
     if y > 160 {
         return false;
     }
-    if big_sprite && y + 16 < 16 {
+    if big_sprite && y.wrapping_add(16) < 16 {
         return false;
     }
-    if !big_sprite && y + 8 < 16 {
+    if !big_sprite && y.wrapping_add(16) + 8 < 16 {
         return false;
     }
     true

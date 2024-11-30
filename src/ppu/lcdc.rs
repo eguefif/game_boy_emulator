@@ -11,11 +11,13 @@ impl Ppu {
         if self.is_lcd_active() && value & 0b_1000_0000 == 0 {
             self.dot = 0;
             self.ly = 0;
+            self.window_ly = 0;
             self.state = State::Mode0;
         }
         if !self.is_lcd_active() && value & 0b_1000_0000 >= 1 {
             self.dot = 0;
             self.ly = 0;
+            self.window_ly = 0;
             self.state = State::Mode0;
         }
         self.lcdc = value;

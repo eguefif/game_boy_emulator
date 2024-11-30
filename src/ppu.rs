@@ -19,11 +19,13 @@ use std::fmt;
 pub struct Ppu {
     pub vblank: bool,
     pub stat_int: bool,
+    pub stat_int_ly: bool,
     pub dot: u32,
     pub video_buffer: [u32; VIDEO_BUFFER],
     pub objects: Vec<Object>,
     pub frame_drawn: bool,
 
+    window_ly: u8,
     scanline_drawn: bool,
     x: u8,
     ly: u8,
@@ -54,10 +56,12 @@ impl Ppu {
         Ppu {
             vblank: false,
             stat_int: false,
+            stat_int_ly: false,
             video_buffer: [0; VIDEO_BUFFER],
             dot: 0,
             frame_drawn: false,
 
+            window_ly: 0,
             scanline_drawn: false,
             state: State::Mode2,
             ly: 0,

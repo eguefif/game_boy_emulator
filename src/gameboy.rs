@@ -15,7 +15,7 @@ pub fn run_gameboy(window: &mut Window, debug_window: &mut Option<Window>) {
             cpu.memory.ppu.frame_drawn = false;
             cpu.memory.joypad.update(window);
             render(&mut cpu, window, debug_window);
-            while start.elapsed().as_millis() < 17 {}
+            while start.elapsed().as_millis() < 1 {}
         }
         handle_exit(window);
     }

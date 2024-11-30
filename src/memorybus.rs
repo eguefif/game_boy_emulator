@@ -104,7 +104,9 @@ impl MemoryBus {
             0xFF07 => self.timer.tac = value | 0xF8,
             0xFF0F => self.interrupt.set_iflag(value),
             0xFF46 => self.handle_dma(value),
-            0xFF50 => self.cartridge.bootstrap = false,
+            0xFF50 => {
+                self.cartridge.bootstrap = false;
+            }
             0xFF80..=0xFFFE => self.hram[(loc - 0xFF80) as usize] = value,
 
             0xFF10..=0xFF3F => self.apu.write(loc, value),
@@ -164,9 +166,10 @@ impl MemoryBus {
             self.interrupt.require_vblank();
             self.ppu.vblank = false;
         }
-        if self.ppu.stat_int {
+        if self.ppu.stat_int || self.ppu.stat_int_ly {
             self.interrupt.require_stat();
             self.ppu.stat_int = false;
+            self.ppu.stat_int_ly = false;
         }
 
         if self.dma {
