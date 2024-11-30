@@ -113,30 +113,30 @@ impl Ppu {
                 if obj.flags & 0x80 == 0x80 && self.is_bg_window_collision(x + xd, y) {
                     continue;
                 }
-                self.video_buffer[y as usize * WIDTH + x + xd] = get_u32_color(color);
+                self.video_buffer[y * WIDTH + x + xd] = get_u32_color(color);
             }
         }
     }
 
     fn is_bg_window_collision(&mut self, x: usize, y: usize) -> bool {
-        let color = self.video_buffer[y as usize * WIDTH + x];
+        let color = self.video_buffer[y * WIDTH + x];
         color != 0
     }
 
     fn get_object_to_display(&mut self) -> Vec<Object> {
         let mut retval: Vec<Object> = vec![];
-        let mut counter = 0;
         let size = self.is_obj_16();
-        for object in self.objects.iter() {
-            if counter == 10 {
+        let mut obj_iter = self.objects.iter();
+        for _ in 0..10 {
+            let obj = obj_iter.next();
+            if let Some(object) = obj {
+                let y = object.y;
+                if is_object_visible(y, self.ly, size) {
+                    retval.push(*object);
+                }
+            } else {
                 break;
             }
-            let y = object.y;
-            if is_object_visible(y, self.ly, size) {
-                retval.push(*object);
-            }
-
-            counter += 1;
         }
 
         retval
