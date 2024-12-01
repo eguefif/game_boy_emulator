@@ -10,6 +10,7 @@ pub mod state_handler;
 pub mod vram;
 
 use crate::ppu::object::Object;
+use color::from_u8_rgb;
 use config::State;
 use config::{Tile, DEBUG_BUFFER, DEBUG_HEIGHT, DEBUG_WIDTH, OAM_SIZE, VIDEO_BUFFER, VRAM_SIZE};
 
@@ -22,6 +23,7 @@ pub struct Ppu {
     pub stat_int_ly: bool,
     pub dot: u32,
     pub video_buffer: [u32; VIDEO_BUFFER],
+    pub bg_trace: [u32; VIDEO_BUFFER],
     pub objects: Vec<Object>,
     pub frame_drawn: bool,
 
@@ -58,6 +60,7 @@ impl Ppu {
             stat_int: false,
             stat_int_ly: false,
             video_buffer: [0; VIDEO_BUFFER],
+            bg_trace: [0; VIDEO_BUFFER],
             dot: 0,
             frame_drawn: false,
 
@@ -105,18 +108,27 @@ impl Ppu {
     pub fn get_tiles_memory(&mut self) -> &[u32] {
         let mut y: usize = 0;
         let mut x: usize = 0;
+        self.cover_with_red();
         for tile in self.tiles.iter() {
             write_tile_in_debug_buffer(tile, &mut self.debug_tiles, x, y);
-            x += 8;
+            x += 9;
             if x >= DEBUG_WIDTH {
                 x = 0;
-                y += 8
+                y += 9;
+            }
+            if y == 6 * 9 || y == (9 * 9 + 3) {
+                y += 3;
             }
             if y >= DEBUG_HEIGHT {
                 break;
             }
         }
         &self.debug_tiles
+    }
+    fn cover_with_red(&mut self) {
+        for index in 0..DEBUG_BUFFER {
+            self.debug_tiles[index] = from_u8_rgb(255, 0, 0);
+        }
     }
 }
 
