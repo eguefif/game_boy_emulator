@@ -24,6 +24,43 @@ impl Object {
     }
 }
 
+pub fn flip_tile_if_flag_16(tile: Tile, tile2: Tile, flags: u8) -> (Tile, Tile) {
+    if flags & 0b0100_0000 == 0 && flags & 0b0010_0000 == 0 {
+        return (tile, tile2);
+    }
+    let mut new_sprite1 = [[0; 8]; 8];
+    let mut new_sprite2 = [[0; 8]; 8];
+    let mut tmp;
+
+    if flags & 0b0100_0000 != 0 {
+        for y in 0..8 {
+            new_sprite1[y] = tile2[7 - y];
+            new_sprite2[7 - y] = tile[y];
+        }
+    }
+    if flags & 0b0010_0000 != 0 {
+        for y in 0..8 {
+            new_sprite1[y] = flip_x(tile[y]);
+            new_sprite2[y] = flip_x(tile2[y]);
+        }
+    }
+    if flags & 0b0100_0000 != 0 && flags & 0b0010_0000 != 0 {
+        new_sprite1 = [[0; 8]; 8];
+        new_sprite2 = [[0; 8]; 8];
+        for y in 0..8 {
+            new_sprite1[y] = flip_x(tile[y]);
+            new_sprite2[y] = flip_x(tile2[y]);
+        }
+        for y in 0..8 {
+            tmp = new_sprite1[y];
+            new_sprite1[y] = new_sprite2[7 - y];
+            new_sprite2[7 - y] = tmp;
+        }
+    }
+
+    (new_sprite1, new_sprite2)
+}
+
 pub fn flip_tile_if_flag(tile: Tile, flags: u8) -> Tile {
     if flags & 0b0100_0000 == 0 && flags & 0b0010_0000 == 0 {
         return tile;

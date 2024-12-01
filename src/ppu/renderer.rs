@@ -4,7 +4,7 @@ use crate::ppu::config::WIDTH;
 use crate::ppu::{get_u32_color, Tile};
 
 use super::config::HEIGHT;
-use super::object::{flip_tile_if_flag, Object};
+use super::object::{flip_tile_if_flag, flip_tile_if_flag_16, Object};
 
 impl Ppu {
     pub fn render(&mut self) {
@@ -100,17 +100,28 @@ impl Ppu {
     }
 
     fn render_object(&mut self, obj: &Object) {
-        let tile = self.tiles[obj.index as usize];
-        let sprite = flip_tile_if_flag(tile, obj.flags);
+        if self.is_obj_16() {
+            let tile = self.tiles[obj.index as usize & 0xFE];
+            let tile2 = self.tiles[obj.index as usize | 0x01];
+            let (sprite1, sprite2) = flip_tile_if_flag_16(tile, tile2, obj.flags);
+            self.render_obj_8(sprite2, obj, 8);
+            self.render_obj_8(sprite1, obj, 0);
+        } else {
+            let tile = self.tiles[obj.index as usize];
+            let sprite = flip_tile_if_flag(tile, obj.flags);
+            self.render_obj_8(sprite, obj, 0);
+        }
+    }
 
-        let height = 8;
-        let y: usize = obj.y.wrapping_sub(16) as usize + (self.ly as usize % height);
+    fn render_obj_8(&mut self, sprite: Tile, obj: &Object, y_offset: u8) {
+        let y: usize =
+            obj.y.wrapping_sub(16).wrapping_add(y_offset) as usize + (self.ly as usize % 8);
         let x: usize = obj.x.wrapping_sub(8) as usize;
         for xd in 0..8 {
-            if (x + xd) > WIDTH || y > HEIGHT {
+            if (x + xd) >= WIDTH || y >= HEIGHT {
                 continue;
             }
-            let pixel = sprite[y % height][(xd + x) % 8];
+            let pixel = sprite[y % 8][(xd + x) % 8];
             if pixel != 0 {
                 let color = self.get_sprite_color(pixel, obj.flags);
                 if obj.flags & 0x80 == 0x80 && self.is_bg_window_collision(x + xd, y) {

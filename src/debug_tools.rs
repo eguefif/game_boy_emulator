@@ -2,7 +2,7 @@ use std::io;
 
 use crate::{cpu::registers::combine, cpu::Cpu};
 
-pub const DEBUG_SPRITES: bool = true;
+pub const DEBUG_SPRITES: bool = false;
 pub const DEBUG_RENDERING: bool = false;
 const PAUSE: bool = false;
 const TEST_ROM: bool = false;
