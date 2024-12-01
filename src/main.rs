@@ -57,6 +57,6 @@ fn get_debug_window() -> Option<Window> {
         .expect("Error while creating window");
     window.topmost(true);
     window.set_position(0, 0);
-    window.set_background_color(255, 255, 255);
+    window.set_background_color(255, 0, 0);
     Some(window)
 }

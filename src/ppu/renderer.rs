@@ -60,6 +60,7 @@ impl Ppu {
             let pixel = tile[y % 8][xd];
             let color = self.get_color_from_bg_palette(pixel);
             self.video_buffer[y * WIDTH + x * 8 + xd] = get_u32_color(color);
+            self.bg_trace[y * WIDTH + x * 8 + xd] = get_u32_color(color);
         }
     }
 
@@ -133,7 +134,7 @@ impl Ppu {
     }
 
     fn is_bg_window_collision(&mut self, x: usize, y: usize) -> bool {
-        let color = self.video_buffer[y * WIDTH + x];
+        let color = self.bg_trace[y * WIDTH + x];
         color != get_u32_color(0)
     }
 

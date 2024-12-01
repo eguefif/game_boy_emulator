@@ -3,8 +3,8 @@ pub const OAM_SIZE: usize = 0xFE9F - 0xFE00 + 1;
 
 pub type Tile = [[u8; 8]; 8];
 
-pub const DEBUG_WIDTH: usize = 256;
-pub const DEBUG_HEIGHT: usize = 192;
+pub const DEBUG_WIDTH: usize = 32 * 9;
+pub const DEBUG_HEIGHT: usize = 12 * 9 + 6;
 pub const DEBUG_BUFFER: usize = DEBUG_WIDTH * DEBUG_HEIGHT;
 
 pub const WIDTH: usize = 160;
