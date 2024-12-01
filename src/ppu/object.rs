@@ -3,7 +3,7 @@ use std::fmt;
 
 use super::config::Tile;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct Object {
     pub x: u8,
     pub y: u8,
@@ -117,11 +117,44 @@ impl PartialOrd for Object {
             self.oam_position < other.oam_position
         }
     }
+    fn le(&self, other: &Self) -> bool {
+        if self.x != other.x {
+            self.x < other.x
+        } else {
+            self.oam_position < other.oam_position
+        }
+    }
+    fn gt(&self, other: &Self) -> bool {
+        if self.x != other.x {
+            self.x > other.x
+        } else {
+            self.oam_position > other.oam_position
+        }
+    }
+    fn ge(&self, other: &Self) -> bool {
+        if self.x != other.x {
+            self.x > other.x
+        } else {
+            self.oam_position > other.oam_position
+        }
+    }
 }
 
 impl Ord for Object {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.x.cmp(&other.x)
+        if self.x == other.x {
+            if self.oam_position < other.oam_position {
+                return Ordering::Less;
+            } else if self.oam_position > other.oam_position {
+                return Ordering::Greater;
+            } else {
+                return Ordering::Equal;
+            }
+        } else if self.x < other.x {
+            return Ordering::Less;
+        } else {
+            return Ordering::Greater;
+        }
     }
 }
 

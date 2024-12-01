@@ -59,7 +59,7 @@ impl Ppu {
             if !(*x == 0 && *y == 0 && *index == 0 && *flags == 0) {
                 self.objects
                     .push(Object::new(*x, *y, *index, *flags, counter));
-                counter += 0;
+                counter += 1;
             }
         }
     }
